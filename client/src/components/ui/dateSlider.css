@@ -1,0 +1,79 @@
+/* Общий стиль календаря */
+.calendar-dark {
+    background-color: #090e1a;
+    color: #ffffff;
+    border-radius: 0.5rem;
+    font-family: inherit;
+  }
+  
+  /* Фон обёртки */
+  .calendar-dark .rdrCalendarWrapper {
+    background-color: transparent;
+  }
+  
+  /* Месяц и сетка */
+  .calendar-dark .rdrMonth {
+    background-color: transparent;
+  }
+  
+  /* Цвет всех цифр по умолчанию */
+  .calendar-dark .rdrDayNumber span {
+    color: white;
+  }
+  
+  /* Полупрозрачные неактивные дни */
+  .calendar-dark .rdrDayPassive {
+    opacity: 0.3;
+  }
+  
+  /* УДАЛЕНА ПОЛОСА ПОД СЕГОДНЯШНИМ ДНЁМ */
+  
+  /* Цвет при наведении */
+  .calendar-dark .rdrDay:not(.rdrDayPassive):hover .rdrDayNumber span {
+    background-color: rgba(64, 64, 156, 0.2);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Цвет выбранных дат */
+  .calendar-dark .rdrSelected,
+  .calendar-dark .rdrStartEdge,
+  .calendar-dark .rdrEndEdge {
+    background: #40409c !important;
+  }
+  
+  /* Текст выбранных дат */
+  .calendar-dark .rdrSelected span,
+  .calendar-dark .rdrStartEdge span,
+  .calendar-dark .rdrEndEdge span {
+    color: white !important;
+  }
+  
+  /* Селекторы месяцев и лет */
+  .calendar-dark .rdrMonthAndYearPickers select {
+    background-color: #0e131d;
+    color: white;
+    border: none;
+  }
+  
+  /* Белые стрелки в выпадающих селектах */
+  .calendar-dark .rdrMonthAndYearWrapper select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg fill='white' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 1em;
+    padding-right: 1.5rem;
+  }
+  
+  /* Русские дни недели */
+  .calendar-dark .rdrWeekDay {
+    color: #94a3b8;
+    font-weight: 500;
+    font-size: 0.85rem;
+  }
+  

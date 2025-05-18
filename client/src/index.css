@@ -1,0 +1,219 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Racing+Sans+One&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+.modal-enter {
+  opacity: 0;
+}
+.modal-enter-active {
+  opacity: 1;
+  transition: opacity 300ms;
+}
+.modal-exit {
+  opacity: 1;
+}
+.modal-exit-active {
+  opacity: 0;
+  transition: opacity 300ms;
+}
+
+
+@layer base {
+  :root {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 90%;
+
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 10%;
+
+    --popover: 220 25% 12%;
+    --popover-foreground: 0 0% 90%;
+
+    --primary: 271 76% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 217 25% 18%;
+    --secondary-foreground: 0 0% 90%;
+
+    --muted: 217 25% 18%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 210 100% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 20% 20%;
+    --input: 220 20% 20%;
+    --ring: 210 100% 50%;
+
+    --radius: 0.5rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-cinema-secondary;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-cinema-accent rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-cinema-accent/80;
+  }
+  
+  /* Animation utilities */
+  .appear-animation {
+    @apply opacity-0 translate-y-4 transition-all duration-500 ease-out;
+  }
+  
+  
+  .appear-animation.show {
+    @apply opacity-100 translate-y-0;
+  }
+  
+  /* Glass effect */
+  .glass-effect {
+    @apply bg-white/10 backdrop-blur-lg border border-white/20 shadow-glass;
+  }
+  
+  /* Seat styles */
+  .seat {
+    @apply relative w-8 h-8 rounded-t-lg cursor-pointer transition-all duration-200 ease-in-out;
+  }
+  
+  .seat:after {
+    @apply content-[''] absolute w-full h-1 bottom-0 rounded-b-lg opacity-40;
+  }
+  
+  .seat:hover {
+    @apply transform scale-105;
+  }
+  
+  .seat-vip {
+    @apply bg-cinema-seat-vip;
+  }
+  
+  .seat-vip:after {
+    @apply bg-cinema-seat-vip;
+  }
+  
+  .seat-standard {
+    @apply bg-cinema-seat-standard;
+  }
+  
+  .seat-standard:after {
+    @apply bg-cinema-seat-standard;
+  }
+  
+  .seat-kids {
+    @apply bg-cinema-seat-kids;
+  }
+  
+  .seat-kids:after {
+    @apply bg-cinema-seat-kids;
+  }
+  
+  .seat-selected {
+    @apply bg-cinema-seat-selected;
+  }
+  
+  .seat-selected:after {
+    @apply bg-cinema-seat-selected;
+  }
+  
+  .seat-reserved {
+    @apply bg-cinema-seat-reserved cursor-not-allowed;
+  }
+  
+  .seat-reserved:after {
+    @apply bg-cinema-seat-reserved;
+  }
+  
+  /* Text gradient */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600;
+  }
+  
+  /* Premium card */
+  .premium-card {
+    @apply relative rounded-2xl p-6 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-md border border-white/10 shadow-medium overflow-hidden;
+  }
+  
+  .premium-card::before {
+    @apply content-[''] absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-blue-500/10 opacity-30 pointer-events-none;
+  }
+  
+  /* Dashboard statistics card */
+  .stat-card {
+    @apply relative rounded-xl p-5 bg-card border border-white/5 shadow-soft transition-all duration-300 hover:shadow-medium hover:border-white/10;
+  }
+}
+
+/* Film poster aspect ratio */
+.poster-aspect {
+  aspect-ratio: 2/3;
+}
+
+/* Screen curve effect */
+.screen {
+  @apply h-12 bg-cinema-accent/20 relative overflow-hidden mx-auto rounded-t-full;
+}
+
+.screen:after {
+  @apply content-[''] absolute w-120% h-full bg-cinema-accent/10 top-0 left-[-10%] border-t-2 border-cinema-accent/50 rounded-t-[50%];
+}
+
+/* Dynamic pricing indicator */
+.price-badge {
+  @apply px-2 py-1 text-xs rounded-full font-medium;
+}
+
+.price-high {
+  @apply bg-red-500/20 text-red-400;
+}
+
+.price-normal {
+  @apply bg-blue-500/20 text-blue-400;
+}
+
+.price-low {
+  @apply bg-green-500/20 text-green-400;
+}
+
+@keyframes gentlePulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
+.animate-gentle-pulse {
+  animation: gentlePulse 3s ease-in-out infinite;
+}
