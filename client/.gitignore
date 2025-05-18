@@ -22,3 +22,15 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Node.js client
+client/node_modules/
+
+# .NET backend
+server/bin/
+server/obj/
+*.user
+
+# OS
+Thumbs.db
+
