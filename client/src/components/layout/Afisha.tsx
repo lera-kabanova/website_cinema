@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 interface Movie {
   id: number;
@@ -16,52 +17,88 @@ const Afisha: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedGenre, setSelectedGenre] = useState<string>("ВСЕ");
+  const [genres, setGenres] = useState<string[]>(["ВСЕ"]);
+  const [imageLoadingStates, setImageLoadingStates] = useState<Record<number, boolean>>({});
 
+  // Загрузка всех фильмов при монтировании
   useEffect(() => {
-    const fetchMovies = async () => {
+    let isMounted = true;
+
+    const fetchInitialMovies = async () => {
       try {
         setLoading(true);
         setError(null);
+        
         const response = await fetch("http://localhost:5218/api/Movies");
         
         if (!response.ok) {
           throw new Error(`Ошибка HTTP: ${response.status}`);
         }
+
+        const data: Movie[] = await response.json();
         
-        const data = await response.json();
-        setMovies(data);
+        if (isMounted) {
+          setMovies(data);
+          
+          const allGenres = data.flatMap(movie => 
+            movie.genre.split(',').map(g => g.trim()).filter(Boolean)
+          );
+          const uniqueGenres = Array.from(new Set(allGenres)).sort();
+          setGenres(["ВСЕ", ...uniqueGenres]);
+
+          // Инициализация состояний загрузки изображений
+          const initialLoadingStates: Record<number, boolean> = {};
+          data.forEach(movie => {
+            initialLoadingStates[movie.id] = true;
+          });
+          setImageLoadingStates(initialLoadingStates);
+        }
       } catch (error) {
-        console.error("Ошибка загрузки:", error);
-        setError("Не удалось загрузить список фильмов");
+        if (isMounted) {
+          console.error("Ошибка загрузки:", error);
+          setError("Не удалось загрузить список фильмов");
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
-    fetchMovies();
+    fetchInitialMovies();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const genres = useMemo(() => {
-    const allGenres = movies.flatMap(movie => 
-      movie.genre.split(',').map(g => g.trim())
-    );
-    const uniqueGenres = Array.from(new Set(allGenres)).filter(Boolean);
-    uniqueGenres.sort();
-    return ["ВСЕ", ...uniqueGenres];
-  }, [movies]);
-
+  // Фильтрация фильмов по выбранному жанру
   const filteredMovies = useMemo(() => {
     if (selectedGenre === "ВСЕ") return movies;
     return movies.filter(movie => 
-      movie.genre.split(',').some(g => g.trim() === selectedGenre)
+      movie.genre.split(',').map(g => g.trim()).includes(selectedGenre)
     );
   }, [movies, selectedGenre]);
+
+  const handleImageLoad = (movieId: number) => {
+    setImageLoadingStates(prev => ({
+      ...prev,
+      [movieId]: false,
+    }));
+  };
 
   if (loading) {
     return (
       <section className="px-8 py-6 bg-cinema-primary text-cinema-text min-h-screen pt-20">
         <div className="flex justify-center items-center h-64">
-          <div className="text-white text-xl">Загрузка фильмов...</div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="text-white text-xl"
+          >
+            Загрузка фильмов...
+          </motion.div>
         </div>
       </section>
     );
@@ -70,15 +107,20 @@ const Afisha: React.FC = () => {
   if (error) {
     return (
       <section className="px-8 py-6 bg-cinema-primary text-cinema-text min-h-screen pt-20">
-        <div className="flex flex-col justify-center items-center h-64">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col justify-center items-center h-64"
+        >
           <div className="text-red-500 text-xl mb-4">{error}</div>
-          <button 
+          <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-cinema-accent text-white rounded-md"
+            className="px-4 py-2 bg-cinema-accent text-white rounded-md hover:bg-cinema-accent/90 transition-colors"
           >
             Попробовать снова
           </button>
-        </div>
+        </motion.div>
       </section>
     );
   }
@@ -86,7 +128,12 @@ const Afisha: React.FC = () => {
   return (
     <section className="px-8 py-6 bg-cinema-primary text-cinema-text min-h-screen pt-20">
       {/* Панель фильтрации жанров */}
-      <div className="flex gap-2 overflow-x-auto pb-4 mb-6 no-scrollbar">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex gap-2 overflow-x-auto pb-4 mb-6 no-scrollbar"
+      >
         {genres.map((genre) => (
           <button
             key={genre}
@@ -100,44 +147,76 @@ const Afisha: React.FC = () => {
             {genre}
           </button>
         ))}
-      </div>
+      </motion.div>
 
       {/* Список фильмов */}
-      {filteredMovies.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {filteredMovies.map((movie) => (
-            <Link
-              to={`/movie/${movie.id}`}
-              key={movie.id}
-              className="group rounded-lg hover:-translate-y-1 transition-transform duration-300"
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7 }}
+        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+      >
+        {filteredMovies.length > 0 ? (
+          filteredMovies.map((movie) => (
+            <motion.div 
+              key={movie.id} 
+              className="relative"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
             >
-              <div className="relative aspect-[2/3] rounded-lg overflow-hidden shadow-lg">
-                <img
-                  src={movie.imageUrl}
-                  alt={movie.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                {movie.ageRating && (
-                  <div className="absolute top-2 right-2 bg-black/70 px-2 py-1 rounded text-white text-xs font-bold">
-                    {movie.ageRating}
-                  </div>
-                )}
-              </div>
-              <div className="mt-3">
-                <h3 className="text-white font-medium text-center line-clamp-2">
-                  {movie.title}
-                </h3>
-              </div>
-            </Link>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12 text-gray-400">
-          Нет фильмов в выбранном жанре
-        </div>
-      )}
+              <Link
+                to={`/movie/${movie.id}`}
+                className="group rounded-lg block transform transition-transform duration-300 hover:-translate-y-1"
+              >
+                <div className="relative aspect-[2/3] rounded-lg overflow-hidden shadow-lg">
+                  {imageLoadingStates[movie.id] && (
+                    <motion.div
+                      initial={{ opacity: 0.8 }}
+                      animate={{ opacity: 0.5 }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 1,
+                        repeatType: "reverse",
+                      }}
+                      className="absolute inset-0 bg-gray-700"
+                    />
+                  )}
+                  <img
+                    src={movie.imageUrl}
+                    alt={movie.title}
+                    className={`w-full h-full object-cover transform transition-transform duration-300 group-hover:scale-105 ${
+                      imageLoadingStates[movie.id] ? "opacity-0" : "opacity-100"
+                    }`}
+                    loading="lazy"
+                    onLoad={() => handleImageLoad(movie.id)}
+                    onError={() => handleImageLoad(movie.id)}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                  {movie.ageRating && (
+                    <div className="absolute top-2 right-2 bg-black/70 px-2 py-1 rounded text-white text-xs font-bold">
+                      {movie.ageRating}
+                    </div>
+                  )}
+                </div>
+                <div className="mt-3">
+                  <h3 className="text-white font-medium text-center line-clamp-2">
+                    {movie.title}
+                  </h3>
+                </div>
+              </Link>
+            </motion.div>
+          ))
+        ) : (
+          <motion.div
+            className="text-center py-12 text-gray-400 col-span-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            Нет фильмов в выбранном жанре
+          </motion.div>
+        )}
+      </motion.div>
     </section>
   );
 };
