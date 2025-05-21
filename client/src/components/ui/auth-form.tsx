@@ -15,6 +15,7 @@ interface FormErrors {
   email?: string;
   password?: string;
   confirmPassword?: string;
+  secretKey?: string;
 }
 
 export function AuthForm({ onSuccess, onClose }: AuthFormProps) {
@@ -23,57 +24,51 @@ export function AuthForm({ onSuccess, onClose }: AuthFormProps) {
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showSecretKey, setShowSecretKey] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    secretKey: ''
   });
   const [errors, setErrors] = useState<FormErrors>({});
 
-const validateForm = (): boolean => {
-  const newErrors: FormErrors = {};
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
 
-  // Шаг 1: Валидация email
-  if (!formData.email) {
-    newErrors.email = "Email обязателен";
-    setErrors(newErrors);
-    return false;
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-    newErrors.email = "Некорректный email";
-    setErrors(newErrors);
-    return false;
-  }
+    if (!formData.email) {
+      newErrors.email = "Email обязателен";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Некорректный email";
+    }
 
-  // Шаг 2: Валидация пароля
-  if (!formData.password) {
-    newErrors.password = "Пароль обязателен";
-    setErrors(newErrors);
-    return false;
-  } else if (!isLogin) {
-    if (formData.password.length < 6) {
-      newErrors.password = "Минимум 6 символов";
-      setErrors(newErrors);
-      return false;
-    } else if (!/\D/.test(formData.password)) {
-      newErrors.password = "Пароль должен содержать хотя бы один символ";
+    if (!formData.password) {
+      newErrors.password = "Пароль обязателен";
+    } else if (!isLogin) {
+      if (formData.password.length < 6) {
+        newErrors.password = "Минимум 6 символов";
+      } else if (!/\D/.test(formData.password)) {
+        newErrors.password = "Пароль должен содержать хотя бы один символ";
+      }
+    }
+
+    if (!isLogin && formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Пароли не совпадают";
+    }
+
+    if (!isLogin && isAdmin && !formData.secretKey) {
+      newErrors.secretKey = "Секретный ключ обязателен для администратора";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return false;
     }
-  }
 
-  // Шаг 3: Подтверждение пароля (только при регистрации)
-  if (!isLogin && formData.password !== formData.confirmPassword) {
-    newErrors.confirmPassword = "Пароли не совпадают";
-    setErrors(newErrors);
-    return false;
-  }
-
-  // Если все успешно
-  setErrors({});
-  return true;
-};
-
-
+    setErrors({});
+    return true;
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -82,7 +77,6 @@ const validateForm = (): boolean => {
       [name]: value
     }));
     
-    // Clear error when user starts typing
     if (errors[name as keyof FormErrors]) {
       setErrors(prev => ({ ...prev, [name]: undefined }));
     }
@@ -90,8 +84,9 @@ const validateForm = (): boolean => {
 
   const handleTabChange = (isLoginTab: boolean) => {
     setIsLogin(isLoginTab);
-    setFormData({ email: '', password: '', confirmPassword: '' });
+    setFormData({ email: '', password: '', confirmPassword: '', secretKey: '' });
     setErrors({});
+    setIsAdmin(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -110,45 +105,46 @@ const validateForm = (): boolean => {
         },
         body: JSON.stringify({ 
           email: formData.email, 
-          password: formData.password 
+          password: formData.password,
+          ...(isLogin ? {} : { 
+            role: isAdmin ? "Admin" : "User",
+            secretKey: isAdmin ? formData.secretKey : undefined
+          })
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(
-          errorData.message || 
-          (isLogin ? "Ошибка входа" : "Ошибка регистрации")
-        );
+        throw new Error(errorData.message || (isLogin ? "Ошибка входа" : "Ошибка регистрации"));
       }
 
       const data = await response.json();
 
       if (isLogin && data.token) {
-        login(data.token, formData.email);
+        login(data.token, formData.email, data.role);
         toast.success("Вы успешно вошли в систему");
       } else if (!isLogin) {
         toast.success("Регистрация успешна. Теперь вы можете войти в систему");
         setIsLogin(true);
-        setFormData({ email: '', password: '', confirmPassword: '' });
+        setFormData({ email: '', password: '', confirmPassword: '', secretKey: '' });
+        setIsAdmin(false);
       }
 
       if (onSuccess) onSuccess();
-    } catch (error: any) {
-      let errorMessage = error.message;
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
 
       if (errorMessage.includes("Email уже используется")) {
-  setErrors({ email: "Email уже используется" });
-} else if (errorMessage.includes("Некорректный email")) {
-  setErrors({ email: "Некорректный email" });
-} else if (errorMessage.includes("Неверный пароль")) {
-  setErrors({ password: "Неверный пароль" });
-} else {
-  toast.error(errorMessage);
-}
-
-      
-
+        setErrors({ email: "Email уже используется" });
+      } else if (errorMessage.includes("Некорректный email")) {
+        setErrors({ email: "Некорректный email" });
+      } else if (errorMessage.includes("Неверный пароль")) {
+        setErrors({ password: "Неверный пароль" });
+      } else if (errorMessage.includes("Неверный секретный ключ")) {
+        setErrors({ secretKey: "Неверный секретный ключ" });
+      } else {
+        toast.error(errorMessage);
+      }
     }
   };
 
@@ -304,77 +300,166 @@ const validateForm = (): boolean => {
         </div>
 
         {!isLogin && (
-          <div className="space-y-1">
-            <div className="relative">
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type={showConfirmPassword ? "text" : "password"}
-                required
-                placeholder=" "
-                className={`peer bg-gray-700 text-white pt-4 pb-1 px-3 h-12 ${
-                  errors.confirmPassword ? "border-red-500" : ""
-                }`}
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
+          <>
+            <div className="space-y-1">
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  required
+                  placeholder=" "
+                  className={`peer bg-gray-700 text-white pt-4 pb-1 px-3 h-12 ${
+                    errors.confirmPassword ? "border-red-500" : ""
+                  }`}
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                />
+                <label
+                  htmlFor="confirmPassword"
+                  className="absolute left-3 top-1 text-xs text-gray-400 transition-all 
+                    peer-placeholder-shown:text-sm peer-placeholder-shown:top-3.5
+                    peer-focus:top-1 peer-focus:text-xs"
+                >
+                  Подтвердите пароль
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-3 text-gray-400 hover:text-white"
+                  tabIndex={-1}
+                >
+                  {showConfirmPassword ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                      />
+                    </svg>
+                  )}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
+              )}
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="isAdmin"
+                checked={isAdmin}
+                onCheckedChange={(checked) => setIsAdmin(!!checked)}
+                className="h-5 w-5 border-2 border-gray-400 data-[state=checked]:border-cinema-accent rounded-md"
               />
               <label
-                htmlFor="confirmPassword"
-                className="absolute left-3 top-1 text-xs text-gray-400 transition-all 
-                  peer-placeholder-shown:text-sm peer-placeholder-shown:top-3.5
-                  peer-focus:top-1 peer-focus:text-xs"
+                htmlFor="isAdmin"
+                className="text-sm text-gray-400 select-none cursor-pointer"
               >
-                Подтвердите пароль
+                Зарегистрироваться как администратор
               </label>
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-3 text-gray-400 hover:text-white"
-                tabIndex={-1}
-              >
-                {showConfirmPassword ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z"
-                    />
-                  </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
-                    />
-                  </svg>
-                )}
-              </button>
             </div>
-            {errors.confirmPassword && (
-              <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
+            {isAdmin && (
+              <div className="space-y-1">
+                <div className="relative">
+                  <Input
+                    id="secretKey"
+                    name="secretKey"
+                    type={showSecretKey ? "text" : "password"}
+                    required
+                    placeholder=" "
+                    className={`peer bg-gray-700 text-white pt-4 pb-1 px-3 h-12 ${
+                      errors.secretKey ? "border-red-500" : ""
+                    }`}
+                    value={formData.secretKey}
+                    onChange={handleInputChange}
+                  />
+                  <label
+                    htmlFor="secretKey"
+                    className="absolute left-3 top-1 text-xs text-gray-400 transition-all 
+                      peer-placeholder-shown:text-sm peer-placeholder-shown:top-3.5
+                      peer-focus:top-1 peer-focus:text-xs"
+                  >
+                    Секретный ключ
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowSecretKey(!showSecretKey)}
+                    className="absolute right-3 top-3 text-gray-400 hover:text-white"
+                    tabIndex={-1}
+                  >
+                    {showSecretKey ? (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+                {errors.secretKey && (
+                  <p className="text-red-500 text-xs mt-1">{errors.secretKey}</p>
+                )}
+              </div>
             )}
-          </div>
+          </>
         )}
 
         {isLogin && (

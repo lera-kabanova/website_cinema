@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { Clock } from 'lucide-react';
+import { toast } from 'sonner';
+import MovieSessions from '@/components/ui/MovieSessions';
 
 interface Movie {
   id: number;
@@ -21,6 +23,7 @@ interface SessionData {
   time: string;
   hall: string;
   date: string;
+  zones: { id: number; name: string; basePrice: number }[];
 }
 
 const hallDescriptions: Record<string, string> = {
@@ -33,60 +36,62 @@ const MovieDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
-  const [movie, setMovie] = useState<Movie | null>(null);
+  const [movie, setMovie] = useState<Movie | null>(location.state?.movie || null);
   const [loading, setLoading] = useState(true);
-  const [sessions, setSessions] = useState<SessionData[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const sessions: SessionData[] = location.state?.scheduleData || [];
 
   useEffect(() => {
+    console.log('Params:', { id }, 'Location state:', location.state); // Отладка
     const fetchMovieDetails = async () => {
       try {
         setLoading(true);
         setError(null);
-        
-        const movieResponse = await fetch(`http://localhost:5218/api/Movies/${id}`);
-        if (!movieResponse.ok) {
-          throw new Error('Не удалось загрузить информацию о фильме');
+
+        if (!movie || movie.id.toString() !== id) {
+          const movieResponse = await fetch(`http://localhost:5218/api/cinema/movies/${id}`);
+          if (!movieResponse.ok) {
+            throw new Error('Не удалось загрузить информацию о фильме');
+          }
+          const movieData = await movieResponse.json();
+          setMovie(movieData);
+          console.log('Загружено с API:', movieData);
+        } else {
+          console.log('Использовано состояние:', movie);
         }
-        const movieData = await movieResponse.json();
-        setMovie(movieData);
-
-        // Здесь можно добавить загрузку сеансов, если они есть в вашей БД
-        // const sessionsResponse = await fetch(`http://localhost:5218/api/Sessions?movieId=${id}`);
-        // const sessionsData = await sessionsResponse.json();
-        // setSessions(sessionsData);
-
-      } catch (err) {
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
         console.error('Error fetching movie details:', err);
-        setError('Не удалось загрузить информацию о фильме');
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchMovieDetails();
-  }, [id]);
+  }, [id, movie]);
 
   const handleBookTicket = () => {
     if (!movie) return;
-    
+
     navigate(`/booking/${movie.id}`, {
       state: {
         movie,
-        bookingType: 'full'
-      }
+        bookingType: 'full',
+      },
     });
   };
 
   const handleSessionClick = (session: SessionData) => {
     if (!movie) return;
-    
+
     navigate(`/booking/${session.id}`, {
       state: {
         movie,
         bookingType: 'quick',
-        sessionData: session
-      }
+        sessionData: session,
+      },
     });
   };
 
@@ -165,27 +170,13 @@ const MovieDetails: React.FC = () => {
                 </p>
               )}
 
-              {sessions.length > 0 ? (
+              {location.state?.fromSchedule && sessions.length > 0 ? (
                 <div className="mt-4">
                   <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
                     <Clock size={20} className="text-cinema-accent" />
                     Выберите сеанс
                   </h3>
-                  <div className="flex flex-wrap gap-3">
-                    {sessions.map(session => (
-                      <button
-                        key={session.id}
-                        onClick={() => handleSessionClick(session)}
-                        className="flex flex-col items-center justify-center w-16 h-16 bg-white/10 text-white rounded-lg border border-white/30 hover:bg-white/20 transition relative overflow-hidden text-[10px] font-medium"
-                      >
-                        <span className="text-sm font-bold">{session.time}</span>
-                        <span className="opacity-70">
-                          {hallDescriptions[session.hall] || session.hall}
-                        </span>
-                        <span className="absolute inset-0 rounded-lg bg-white opacity-0 hover:opacity-10 transition duration-300"></span>
-                      </button>
-                    ))}
-                  </div>
+                  <MovieSessions sessions={sessions} movie={movie} />
                 </div>
               ) : (
                 <button

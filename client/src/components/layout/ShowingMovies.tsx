@@ -1,10 +1,32 @@
 import { Play, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 
+const formatDuration = (minutes: number | string): string => {
+  // Если пришла строка, пытаемся преобразовать в число
+  const mins = typeof minutes === 'string' ? parseInt(minutes, 10) : minutes;
+  
+  // Проверка на NaN и отрицательные значения
+  if (isNaN(mins) || mins < 0) return '0 мин';
+  
+  const hours = Math.floor(mins / 60);
+  const remainingMinutes = mins % 60;
+  
+  let result = '';
+  if (hours > 0) {
+    result += `${hours}ч`;
+  }
+  if (remainingMinutes > 0) {
+    if (result) result += ' ';
+    result += `${remainingMinutes}мин`;
+  }
+  
+  return result || '0 мин';
+};
+
 interface Movie {
   id: number;
   title: string;
-  duration: string;
+  duration: number; // Изменено с string на number
   genre: string;
   imageUrl: string;
   ageRating?: string;
@@ -263,7 +285,7 @@ useEffect(() => {
                 <span className="text-gray-300">|</span>
               </>
             )}
-            <span>{currentMovie.duration}</span>
+            <span>{formatDuration(currentMovie.duration)}</span>
             <span className="text-gray-300">|</span>
             <span>{currentMovie.genre}</span>
           </div>

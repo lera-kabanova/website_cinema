@@ -11,5 +11,8 @@ namespace CinemaProject.Models
 
         [Required]
         public string PasswordHash { get; set; } = null!;
+
+        [Required]
+        public string Role { get; set; } = "User"; // По умолчанию роль User
     }
 }

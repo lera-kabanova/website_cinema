@@ -57,5 +57,32 @@ namespace CinemaProject.Controllers
 
             return movie;
         }
+
+        
+[HttpGet("byGenre")]
+[AllowAnonymous]
+public async Task<ActionResult<IEnumerable<Movie>>> GetMoviesByGenre(string genre)
+{
+    if (string.IsNullOrEmpty(genre) || genre.ToUpper() == "ВСЕ")
+    {
+        return await _context.Movies.ToListAsync();
+    }
+
+    // Сначала получаем фильмы, у которых есть жанры
+    var moviesWithGenres = await _context.Movies
+        .Where(m => m.Genre != null)
+        .ToListAsync();
+
+    // Потом фильтруем уже в памяти
+    var filteredMovies = moviesWithGenres
+        .Where(m => m.Genre.Split(',')
+            .Any(g => g.Trim().Equals(genre, StringComparison.OrdinalIgnoreCase)))
+        .ToList();
+
+    return filteredMovies;
+}
+
+
+        
     }
 }

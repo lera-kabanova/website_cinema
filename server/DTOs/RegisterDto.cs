@@ -12,8 +12,11 @@ namespace CinemaProject.DTOs
         [Required(ErrorMessage = "Пароль обязателен")]
         [MinLength(6, ErrorMessage = "Пароль должен быть не менее 6 символов")]
         [RegularExpression(@"^(?=.*\D).+$",
-        ErrorMessage = "Пароль должен содержать хотя бы один нецифровой символ")]
-
+            ErrorMessage = "Пароль должен содержать хотя бы один нецифровой символ")]
         public string Password { get; set; } = null!;
+
+        public string? Role { get; set; } = "User"; // По умолчанию User
+
+        public string? SecretKey { get; set; } // Секретный ключ для Admin
     }
 }

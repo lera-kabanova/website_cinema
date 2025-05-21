@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom"
 import { AuthProvider } from "./context/AuthContext"
 import { Toaster } from '@/components/ui/sonner'
 import Header from "./components/layout/Header"
@@ -37,7 +37,7 @@ const App = () => {
                   path="*"
                   element={
                     <div className="p-8 text-center text-2xl">
-                      Страница не найдена
+                      Страница не найдена. <Link to="/" className="text-cinema-accent">На главную</Link>
                     </div>
                   }
                 />

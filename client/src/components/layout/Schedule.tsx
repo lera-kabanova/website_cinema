@@ -1,39 +1,18 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   isSameDay,
   isAfter,
   format as dateFnsFormat,
+  addDays,
 } from 'date-fns';
 import DateSlider from '@/components/ui/DateSlider';
-import { mockMovies } from '@/mockMovies';
-
-interface Movie {
-  id: number;
-  title: string;
-  duration: string;
-  genre: string;
-  imageUrl: string;
-  description?: string | null;
-  actors?: string[];
-  director?: string;
-  year?: number;
-}
-
-interface Zone {
-  id: string;
-  name: string;
-  price: number;
-}
-
-interface Hall {
-  id: number;
-  name: string;
-  capacity: number;
-  type: 'standard' | 'vip' | 'comfort';
-  zones: Zone[];
-}
+import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 interface ScheduleItem {
   id: number;
@@ -41,105 +20,72 @@ interface ScheduleItem {
   hallId: number;
   date: string;
   time: string;
-}
-
-const HALLS_KEY = 'cinema_halls';
-const SCHEDULE_KEY = 'cinema_schedule';
-
-function buildInitialHalls(): Hall[] {
-  return [
-    {
-      id: 1,
-      name: 'Зал 1 (Стандартный)',
-      capacity: 100,
-      type: 'standard',
-      zones: [
-        { id: 'standard', name: 'Стандарт', price: 300 },
-        { id: 'comfort', name: 'Комфорт', price: 500 },
-      ],
-    },
-    {
-      id: 2,
-      name: 'Зал 2 (Комфортный)',
-      capacity: 50,
-      type: 'comfort',
-      zones: [
-        { id: 'vip', name: 'Комфорт+', price: 1000 },
-      ],
-    },
-    {
-      id: 3,
-      name: 'VIP Зал',
-      capacity: 30,
-      type: 'vip',
-      zones: [{ id: 'vip', name: 'VIP', price: 1500 }],
-    },
-  ];
-}
-
-function buildInitialSchedule(halls: Hall[]): ScheduleItem[] {
-  const today = new Date();
-  let id = 1;
-  const res: ScheduleItem[] = [];
-
-  for (let offset = 0; offset < 7; offset++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + offset);
-    const dateStr = dateFnsFormat(date, 'yyyy-MM-dd');
-
-    const moviesForDay = [...mockMovies]
-      .sort(() => 0.5 - Math.random())
-      .slice(0, 5 + Math.floor(Math.random() * 5));
-
-      moviesForDay.forEach(movie => {
-        const timesCount = 1 + Math.floor(Math.random() * 3);
-        const times = ['10:00', '13:00', '16:00', '19:00', '22:00']
-          .sort(() => 0.5 - Math.random())
-          .slice(0, timesCount);
-      
-        times.forEach(time => {
-          // Выбираем между всеми залами (1,2,3)
-          const hallIds = [1, 2, 3];
-          const randomHallId = hallIds[Math.floor(Math.random() * hallIds.length)];
-          const hall = halls.find(h => h.id === randomHallId) || halls[0];
-          res.push({
-            id: id++,
-            movieId: movie.id,
-            hallId: hall.id,
-            date: dateStr,
-            time,
-          });
-        });
-      });
-  }
-  return res;
+  movie: {
+    id: number;
+    title: string;
+    duration: number;
+    genre: string;
+    imageUrl: string;
+    ageRating?: string | null;
+    year?: number;
+    description?: string | null;
+    trailerUrl?: string | null;
+    backgroundImageUrl?: string | null;
+  };
+  hall: {
+    id: number;
+    name: string;
+    capacity: number;
+    type: 'standard' | 'vip' | 'comfort';
+    zones: {
+      id: number;
+      name: string;
+      basePrice: number;
+    }[];
+  };
 }
 
 const Schedule: React.FC = () => {
   const navigate = useNavigate();
+  const { token, role, isAuthenticated } = useAuth();
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [movies] = useState<Movie[]>(mockMovies as Movie[]);
-  const [halls, setHalls] = useState<Hall[]>([]);
-  const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
+  const [schedules, setSchedules] = useState<ScheduleItem[]>([]);
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
-    const storedHalls = localStorage.getItem(HALLS_KEY);
-    const initialHalls: Hall[] = storedHalls
-      ? JSON.parse(storedHalls)
-      : buildInitialHalls();
-    if (!storedHalls)
-      localStorage.setItem(HALLS_KEY, JSON.stringify(initialHalls));
-    setHalls(initialHalls);
+    const fetchSchedules = async () => {
+      try {
+        const response = await fetch('http://localhost:5218/api/cinema/schedules', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          credentials: 'include',
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => null);
+          throw new Error(errorData?.message || `Ошибка загрузки расписания: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Получено расписание:', data);
+        setSchedules(data);
+      } catch (error: unknown) {
+        console.error('Ошибка загрузки расписания:', error);
+        const errorMessage = error instanceof Error 
+          ? error.message 
+          : 'Не удалось загрузить расписание. Проверьте подключение.';
+        toast.error(errorMessage);
+      }
+    };
 
-    const storedSchedule = localStorage.getItem(SCHEDULE_KEY);
-    const initialSchedule: ScheduleItem[] = storedSchedule
-      ? JSON.parse(storedSchedule)
-      : buildInitialSchedule(initialHalls);
-    if (!storedSchedule)
-      localStorage.setItem(SCHEDULE_KEY, JSON.stringify(initialSchedule));
-    setSchedule(initialSchedule);
+    fetchSchedules();
   }, []);
 
   useEffect(() => {
@@ -151,7 +97,7 @@ const Schedule: React.FC = () => {
   const isToday = isSameDay(selectedDate, currentTime);
 
   const filteredSchedule = useMemo(() => {
-    return schedule.filter(item => {
+    return schedules.filter(item => {
       if (item.date !== formattedSelectedDate) return false;
 
       if (isToday) {
@@ -167,33 +113,194 @@ const Schedule: React.FC = () => {
       }
       return true;
     });
-  }, [schedule, formattedSelectedDate, isToday, selectedDate, currentTime]);
+  }, [schedules, formattedSelectedDate, isToday, selectedDate, currentTime]);
 
-  const moviesOfDay = useMemo(
-    () => movies.filter(m => filteredSchedule.some(s => s.movieId === m.id)),
-    [movies, filteredSchedule],
-  );
+  const moviesOfDay = useMemo(() => {
+    const movieIds = [...new Set(filteredSchedule.map(s => s.movieId))];
+    return movieIds.map(id => filteredSchedule.find(s => s.movieId === id)!.movie);
+  }, [filteredSchedule]);
 
-  const goToMoviePage = (movie: Movie, sessions: ScheduleItem[]) => {
+  const goToMoviePage = (movie: ScheduleItem['movie'], sessions: ScheduleItem[]) => {
     const sessionData = sessions.map(s => ({
       id: s.id,
       time: s.time,
-      hall: halls.find(h => h.id === s.hallId)?.name || '',
-      date: s.date
+      hall: s.hall.type === 'standard' ? 'Стандартный зал' : s.hall.type === 'comfort' ? 'Комфортный зал' : 'VIP зал',
+      date: s.date,
+      zones: s.hall.zones,
     }));
+    console.log('Переход на /movie/', movie.id, 'с данными:', { movie, scheduleData: sessionData });
     navigate(`/movie/${movie.id}`, {
       state: {
         fromSchedule: true,
         scheduleData: sessionData,
+        movie: movie,
       },
     });
   };
+
+  const handleGenerateSchedule = async () => {
+    if (!isAuthenticated || role !== 'Admin') {
+      toast.error('Только администраторы могут генерировать расписание');
+      return;
+    }
+
+    if (!startDate || !endDate) {
+      toast.error('Пожалуйста, выберите начальную и конечную даты');
+      return;
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (start > end) {
+      toast.error('Начальная дата не может быть позже конечной');
+      return;
+    }
+
+    const maxDaysRange = 30;
+    const daysDifference = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysDifference > maxDaysRange) {
+      toast.error(`Период не может быть больше ${maxDaysRange} дней`);
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      console.log('Отправка запроса на генерацию расписания:', { startDate, endDate, token });
+      const response = await fetch('http://localhost:5218/api/cinema/schedules/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          startDate: startDate,
+          endDate: endDate,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Ошибка сервера:', errorData);
+        if (response.status === 401) {
+          throw new Error('Необходима авторизация. Пожалуйста, войдите снова.');
+        } else if (response.status === 403) {
+          throw new Error('У вас нет прав для этой операции.');
+        } else {
+          throw new Error(errorData.message || `Ошибка ${response.status}: Не удалось сгенерировать расписание`);
+        }
+      }
+
+      const scheduleResponse = await fetch('http://localhost:5218/api/cinema/schedules', {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!scheduleResponse.ok) {
+        throw new Error('Ошибка при получении обновленного расписания');
+      }
+
+      const newSchedules = await scheduleResponse.json();
+      console.log('Обновленное расписание:', newSchedules);
+      setSchedules(newSchedules);
+      setIsDialogOpen(false);
+      setStartDate('');
+      setEndDate('');
+      toast.success('Расписание успешно сгенерировано', {
+        description: newSchedules.length === 0 ? 'Внимание: сеансов не создано, возможно, слишком позднее время для текущего дня.' : undefined,
+      });
+    } catch (error) {
+      console.error('Ошибка генерации расписания:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка. Проверьте подключение.';
+      toast.error(errorMessage, {
+        description: 'Попробуйте снова или обратитесь к администратору.',
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const getHallName = (type: 'standard' | 'vip' | 'comfort') => {
+    return type === 'standard' ? 'Зал 1' : type === 'comfort' ? 'Зал 2' : 'VIP Зал';
+  };
+
   return (
     <section className="relative px-4 py-6 bg-cinema-primary text-cinema-text min-h-screen pt-20">
       <header className="mb-6">
-        <h1 className="text-3xl font-bold mb-4">Расписание</h1>
+        {/* <h1 className="text-3xl font-bold mb-4">Расписание</h1> */}
         <DateSlider selectedDate={selectedDate} onDateChange={setSelectedDate} />
+        {role === 'Admin' && (
+          <Button
+            onClick={() => setIsDialogOpen(true)}
+            className="mt-4 bg-cinema-accent hover:bg-cinema-mouse text-white"
+          >
+            Сгенерировать расписание
+          </Button>
+        )}
       </header>
+
+      <Dialog open={isDialogOpen} onOpenChange={(open) => !isGenerating && setIsDialogOpen(open)}>
+        <DialogContent className="bg-gray-800 text-white">
+          <DialogHeader>
+            <VisuallyHidden>
+              <DialogTitle>Генерация расписания</DialogTitle>
+            </VisuallyHidden>
+            <DialogDescription className="text-gray-400">
+              При генерации учитываются следующие правила:
+              • Случайный выбор фильмов на каждый день
+              • Перерыв между сеансами - 20 минут
+              • Семейные фильмы (0+, 6+) - до 20:00
+              • Фильмы 18+ - после 16:00
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="startDate" className="block text-sm text-gray-400">Начальная дата</label>
+              <Input
+                id="startDate"
+                type="date"
+                value={startDate}
+                min={dateFnsFormat(new Date(), 'yyyy-MM-dd')}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="bg-gray-700 text-white"
+              />
+            </div>
+            <div>
+              <label htmlFor="endDate" className="block text-sm text-gray-400">Конечная дата</label>
+              <Input
+                id="endDate"
+                type="date"
+                value={endDate}
+                min={startDate || dateFnsFormat(new Date(), 'yyyy-MM-dd')}
+                max={startDate ? dateFnsFormat(addDays(new Date(startDate), 30), 'yyyy-MM-dd') : undefined}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="bg-gray-700 text-white"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={() => setIsDialogOpen(false)}
+              className="bg-gray-600 hover:bg-gray-500 text-white"
+              disabled={isGenerating}
+            >
+              Отмена
+            </Button>
+            <Button
+              onClick={handleGenerateSchedule}
+              className="bg-cinema-accent hover:bg-cinema-mouse text-white"
+              disabled={isGenerating}
+            >
+              {isGenerating ? 'Генерация...' : 'Сгенерировать'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {moviesOfDay.length ? (
         <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -205,10 +312,12 @@ const Schedule: React.FC = () => {
             return (
               <article
                 key={movie.id}
-                className="bg-white/5 rounded-lg overflow-hidden hover:bg-white/10 transition cursor-pointer"
-                onClick={() => goToMoviePage(movie, times)}
+                className="bg-white/5 rounded-lg overflow-hidden hover:bg-white/10 transition"
               >
-                <div className="relative w-full aspect-[2/3]">
+                <div 
+                  className="relative w-full aspect-[2/3] cursor-pointer"
+                  onClick={() => goToMoviePage(movie, times)}
+                >
                   <img
                     src={movie.imageUrl}
                     alt={movie.title}
@@ -218,25 +327,16 @@ const Schedule: React.FC = () => {
                 </div>
 
                 <div className="p-3">
-                  <h3 className="text-lg font-bold mb-1 line-clamp-1">
-                    {movie.title}
-                  </h3>
-
-                  <div className="mt-2">
-                    <div className="flex flex-wrap gap-1">
-                      {times.map(t => (
-                        <button
-                          key={t.id}
-                          className="bg-cinema-accent px-2 py-1 rounded text-white text-xs hover:bg-cinema-accent/80 transition"
-                          onClick={e => {
-                            e.stopPropagation();
-                            navigate(`/booking/${t.id}`);
-                          }}
-                        >
-                          {t.time}
-                        </button>
-                      ))}
-                    </div>
+                  <h3 className="text-lg font-bold mb-1 line-clamp-1">{movie.title}</h3>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {times.map((session) => (
+                      <div
+                        key={session.id}
+                        className="bg-cinema-accent text-white rounded-sm text-center px-2 py-1 text-xs inline-flex items-center justify-center min-w-[100px]"
+                      >
+                        {session.time} • {getHallName(session.hall.type)}
+                      </div>
+                    ))}
                   </div>
                 </div>
               </article>

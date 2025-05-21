@@ -336,3 +336,5 @@ D:\Cinema_website\server\obj\Debug\net8.0\refint\cinema_mng_backend.dll
 D:\Cinema_website\server\obj\Debug\net8.0\cinema_mng_backend.pdb
 D:\Cinema_website\server\obj\Debug\net8.0\cinema_mng_backend.genruntimeconfig.cache
 D:\Cinema_website\server\obj\Debug\net8.0\ref\cinema_mng_backend.dll
+D:\Cinema_Website\server\obj\Debug\net8.0\cinema_mng_backend.sourcelink.json
+D:\Cinema_Website\server\bin\Debug\net8.0\Newtonsoft.Json.dll

@@ -3,6 +3,7 @@ using System;
 using CinemaProject.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,49 +11,14 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace cinema_mng_backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250520162552_AddRoleToUser")]
+    partial class AddRoleToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.5");
-
-            modelBuilder.Entity("CinemaProject.Models.Booking", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("BookingTime")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("ScheduleId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("TicketTypeId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("ZoneId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ScheduleId");
-
-                    b.HasIndex("TicketTypeId");
-
-                    b.HasIndex("ZoneId");
-
-                    b.ToTable("Bookings");
-                });
 
             modelBuilder.Entity("CinemaProject.Models.Hall", b =>
                 {
@@ -117,8 +83,9 @@ namespace cinema_mng_backend.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Duration")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("Duration")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Genre")
                         .IsRequired()
@@ -326,48 +293,7 @@ namespace cinema_mng_backend.Migrations
                             BasePrice = 18.00m,
                             HallId = 2,
                             Name = "LoveSeats"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            BasePrice = 25.00m,
-                            HallId = 3,
-                            Name = "VIP Диван"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            BasePrice = 30.00m,
-                            HallId = 3,
-                            Name = "VIP Реклайнер"
                         });
-                });
-
-            modelBuilder.Entity("CinemaProject.Models.Booking", b =>
-                {
-                    b.HasOne("CinemaProject.Models.Schedule", "Schedule")
-                        .WithMany()
-                        .HasForeignKey("ScheduleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CinemaProject.Models.TicketType", "TicketType")
-                        .WithMany()
-                        .HasForeignKey("TicketTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CinemaProject.Models.Zone", "Zone")
-                        .WithMany()
-                        .HasForeignKey("ZoneId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Schedule");
-
-                    b.Navigation("TicketType");
-
-                    b.Navigation("Zone");
                 });
 
             modelBuilder.Entity("CinemaProject.Models.Schedule", b =>
@@ -392,17 +318,12 @@ namespace cinema_mng_backend.Migrations
             modelBuilder.Entity("CinemaProject.Models.Zone", b =>
                 {
                     b.HasOne("CinemaProject.Models.Hall", "Hall")
-                        .WithMany("Zones")
+                        .WithMany()
                         .HasForeignKey("HallId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Hall");
-                });
-
-            modelBuilder.Entity("CinemaProject.Models.Hall", b =>
-                {
-                    b.Navigation("Zones");
                 });
 #pragma warning restore 612, 618
         }
