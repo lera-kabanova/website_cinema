@@ -71,52 +71,42 @@ const Header: React.FC = () => {
           </nav>
 
           <div className="hidden md:flex items-center space-x-2">
-            <Button variant="ghost" size="icon" className="text-white/80 hover:text-white hover:bg-white/10">
-              <Search className="h-5 w-5" />
-            </Button>
-
-            <Button variant="ghost" size="icon" className="text-white/80 hover:text-white hover:bg-white/10">
-              <ShoppingCart className="h-5 w-5" />
-            </Button>
-
             {email ? (
-  <div className="flex items-center space-x-4">
-    <span className="text-sm text-white">{email}</span>
-    <Button
-      onClick={logout}
-      variant="ghost"
-      className="text-white hover:text-cinema-accent text-sm"
-    >
-      Выйти
-    </Button>
-  </div>
-) : (
-  <Dialog open={authOpen} onOpenChange={setAuthOpen}>
-    <DialogTrigger asChild>
-      <Button 
-        variant="ghost" 
-        size="icon"
-        className="text-white/80 hover:text-white hover:bg-white/10"
-      >
-        <User className="h-5 w-5" />
-      </Button>
-    </DialogTrigger>
-    <DialogContent className="sm:max-w-[425px] p-0 border-0 bg-transparent">
-      <AuthForm onSuccess={() => setAuthOpen(false)} />
-    </DialogContent>
-  </Dialog>
-)}
-
+              <div className="flex items-center space-x-4">
+                <Link 
+                  to="/profile" 
+                  className="text-sm text-white hover:text-cinema-accent transition-colors"
+                >
+                  {email}
+                </Link>
+                <Button
+                  onClick={logout}
+                  variant="ghost"
+                  className="text-white hover:text-cinema-accent text-sm"
+                >
+                  Выйти
+                </Button>
+              </div>
+            ) : (
+              <Dialog open={authOpen} onOpenChange={setAuthOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="text-white/80 hover:text-white hover:bg-white/10"
+                  >
+                    <User className="h-5 w-5" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px] p-0 border-0 bg-transparent">
+                  <AuthForm onSuccess={() => setAuthOpen(false)} />
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
 
           {/* Мобильное меню */}
           <div className="md:hidden flex items-center space-x-2">
-            <Button variant="ghost" size="icon" className="text-white/80 hover:text-white">
-              <Search className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" className="text-white/80 hover:text-white">
-              <ShoppingCart className="h-5 w-5" />
-            </Button>
             <Button 
               variant="ghost" 
               size="icon" 
@@ -150,28 +140,33 @@ const Header: React.FC = () => {
               
               <div className="pt-2 mt-2 border-t border-white/20">
                 {email ? (
-  <div className="px-3 py-2 text-white/90 flex flex-col gap-2">
-    <span>{email}</span>
-    <button
-      onClick={logout}
-      className="text-left text-base text-white/80 hover:text-white hover:bg-white/10 px-3 py-2 rounded-md"
-    >
-      Выйти
-    </button>
-  </div>
-) : (
-  <Dialog>
-    <DialogTrigger asChild>
-      <button className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white/80 hover:text-white hover:bg-white/10">
-        Войти
-      </button>
-    </DialogTrigger>
-    <DialogContent className="sm:max-w-[425px] p-0 border-0 bg-transparent">
-      <AuthForm />
-    </DialogContent>
-  </Dialog>
-)}
-
+                  <div className="px-3 py-2 text-white/90 flex flex-col gap-2">
+                    <Link 
+                      to="/profile" 
+                      className="text-white/80 hover:text-white transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {email}
+                    </Link>
+                    <button
+                      onClick={logout}
+                      className="text-left text-base text-white/80 hover:text-white hover:bg-white/10 px-3 py-2 rounded-md"
+                    >
+                      Выйти
+                    </button>
+                  </div>
+                ) : (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <button className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white/80 hover:text-white hover:bg-white/10">
+                        Войти
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px] p-0 border-0 bg-transparent">
+                      <AuthForm />
+                    </DialogContent>
+                  </Dialog>
+                )}
               </div>
             </div>
           </div>

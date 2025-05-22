@@ -39,18 +39,16 @@ export function AuthForm({ onSuccess, onClose }: AuthFormProps) {
 
     if (!formData.email) {
       newErrors.email = "Email обязателен";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    } else if (!/^[^@]+@[^@]+\.[^@]+$/.test(formData.email)) {
       newErrors.email = "Некорректный email";
     }
 
     if (!formData.password) {
       newErrors.password = "Пароль обязателен";
-    } else if (!isLogin) {
-      if (formData.password.length < 6) {
-        newErrors.password = "Минимум 6 символов";
-      } else if (!/\D/.test(formData.password)) {
-        newErrors.password = "Пароль должен содержать хотя бы один символ";
-      }
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Пароль должен быть не менее 6 символов";
+    } else if (!/\D/.test(formData.password)) {
+      newErrors.password = "Пароль должен содержать хотя бы один нецифровой символ";
     }
 
     if (!isLogin && formData.password !== formData.confirmPassword) {
@@ -61,13 +59,8 @@ export function AuthForm({ onSuccess, onClose }: AuthFormProps) {
       newErrors.secretKey = "Секретный ключ обязателен для администратора";
     }
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return false;
-    }
-
-    setErrors({});
-    return true;
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -460,31 +453,6 @@ export function AuthForm({ onSuccess, onClose }: AuthFormProps) {
               </div>
             )}
           </>
-        )}
-
-        {isLogin && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="remember"
-                checked={rememberMe}
-                onCheckedChange={(checked) => setRememberMe(!!checked)}
-                className="h-5 w-5 border-2 border-gray-400 data-[state=checked]:border-cinema-accent rounded-md"
-              />
-              <label
-                htmlFor="remember"
-                className="text-sm text-gray-400 select-none cursor-pointer"
-              >
-                Запомнить меня
-              </label>
-            </div>
-            <button
-              type="button"
-              className="text-sm text-gray-400 hover:text-white hover:underline"
-            >
-              Забыли пароль?
-            </button>
-          </div>
         )}
 
         <Button

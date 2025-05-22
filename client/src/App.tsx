@@ -9,6 +9,8 @@ import Schedule from "./components/layout/Schedule"
 import MovieDetails from "./components/layout/MovieDetails"
 import Booking from "./components/layout/Booking"
 import Halls from "./components/layout/Halls"
+import Profile from "./components/layout/Profile"
+import { ProtectedRoute } from "./ProtectedRoute"
 
 const App = () => {
   return (
@@ -33,6 +35,14 @@ const App = () => {
                 <Route path="/halls" element={<Halls />} />
                 <Route path="/movie/:id" element={<MovieDetails />} />
                 <Route path="/booking/:scheduleId" element={<Booking />} />
+                <Route 
+                  path="/profile" 
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  } 
+                />
                 <Route
                   path="*"
                   element={
