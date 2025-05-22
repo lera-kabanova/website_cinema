@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "NbWCRPLkTQ6qNaDLlvCOVNoSAKpwNfduXZV8ZlC4zSE=",
+  "Hash": "Pe4oVTyYfGxWbr8ow0NqqawbbqLpxPpQ/hUp13nDCoc=",
   "Source": "cinema_mng_backend",
   "BasePath": "_content/cinema_mng_backend",
   "Mode": "Default",
@@ -10,17 +10,17 @@
     {
       "Name": "cinema_mng_backend\\wwwroot",
       "Source": "cinema_mng_backend",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "Pattern": "**"
     }
   ],
   "Assets": [
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\65.jpg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\65.jpg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/65.jpg",
       "AssetKind": "All",
@@ -36,10 +36,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\65.jpg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\Интерстеллар.jpg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\Интерстеллар.jpg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/Интерстеллар.jpg",
       "AssetKind": "All",
@@ -55,10 +55,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\Интерстеллар.jpg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\Побег-из-Шоушенка.jpg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\Побег-из-Шоушенка.jpg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/Побег-из-Шоушенка.jpg",
       "AssetKind": "All",
@@ -74,10 +74,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\Побег-из-Шоушенка.jpg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\Форрест-Гамп.jpg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\Форрест-Гамп.jpg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/Форрест-Гамп.jpg",
       "AssetKind": "All",
@@ -93,10 +93,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\Форрест-Гамп.jpg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\Хатико.jpg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\Хатико.jpg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/Хатико.jpg",
       "AssetKind": "All",
@@ -112,10 +112,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\Хатико.jpg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\ape.jpg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\ape.jpg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/ape.jpg",
       "AssetKind": "All",
@@ -131,10 +131,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\ape.jpg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\assassin.jpg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\assassin.jpg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/assassin.jpg",
       "AssetKind": "All",
@@ -150,10 +150,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\assassin.jpg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\beautiful-disaster.jpeg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\beautiful-disaster.jpeg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/beautiful-disaster.jpeg",
       "AssetKind": "All",
@@ -169,10 +169,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\beautiful-disaster.jpeg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\bg-fast-x.jpeg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\bg-fast-x.jpeg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/bg-fast-x.jpeg",
       "AssetKind": "All",
@@ -188,10 +188,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\bg-fast-x.jpeg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\bg-heart-of-stone.jpeg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\bg-heart-of-stone.jpeg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/bg-heart-of-stone.jpeg",
       "AssetKind": "All",
@@ -207,10 +207,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\bg-heart-of-stone.jpeg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\bg-jailer.jpeg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\bg-jailer.jpeg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/bg-jailer.jpeg",
       "AssetKind": "All",
@@ -226,10 +226,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\bg-jailer.jpeg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\bg-little-mermaid.jpg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\bg-little-mermaid.jpg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/bg-little-mermaid.jpg",
       "AssetKind": "All",
@@ -245,10 +245,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\bg-little-mermaid.jpg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\bg-peter-pan-and-wendy.jpeg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\bg-peter-pan-and-wendy.jpeg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/bg-peter-pan-and-wendy.jpeg",
       "AssetKind": "All",
@@ -264,10 +264,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\bg-peter-pan-and-wendy.jpeg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\bg-the-black-demon.jpeg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\bg-the-black-demon.jpeg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/bg-the-black-demon.jpeg",
       "AssetKind": "All",
@@ -283,10 +283,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\bg-the-black-demon.jpeg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\bg-the-covenant.jpeg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\bg-the-covenant.jpeg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/bg-the-covenant.jpeg",
       "AssetKind": "All",
@@ -302,10 +302,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\bg-the-covenant.jpeg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\bg-transformer.jpg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\bg-transformer.jpg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/bg-transformer.jpg",
       "AssetKind": "All",
@@ -321,10 +321,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\bg-transformer.jpg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\fast-x.jpeg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\fast-x.jpeg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/fast-x.jpeg",
       "AssetKind": "All",
@@ -340,10 +340,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\fast-x.jpeg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\heart-of-stone.jpg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\heart-of-stone.jpg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/heart-of-stone.jpg",
       "AssetKind": "All",
@@ -359,10 +359,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\heart-of-stone.jpg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\Intouchables.jpg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\Intouchables.jpg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/Intouchables.jpg",
       "AssetKind": "All",
@@ -378,10 +378,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\Intouchables.jpg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\jailer.jpg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\jailer.jpg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/jailer.jpg",
       "AssetKind": "All",
@@ -397,10 +397,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\jailer.jpg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\meg-2.jpg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\meg-2.jpg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/meg-2.jpg",
       "AssetKind": "All",
@@ -416,10 +416,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\meg-2.jpg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\no-hard-feelings.jpeg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\no-hard-feelings.jpeg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/no-hard-feelings.jpeg",
       "AssetKind": "All",
@@ -435,10 +435,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\no-hard-feelings.jpeg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\peter-pan-and-wendy.jpg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\peter-pan-and-wendy.jpg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/peter-pan-and-wendy.jpg",
       "AssetKind": "All",
@@ -454,10 +454,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\peter-pan-and-wendy.jpg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\the-black-demon.jpg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\the-black-demon.jpg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/the-black-demon.jpg",
       "AssetKind": "All",
@@ -473,10 +473,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\the-black-demon.jpg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\the-covenant.jpg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\the-covenant.jpg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/the-covenant.jpg",
       "AssetKind": "All",
@@ -492,10 +492,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\the-covenant.jpg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\the-little-mermaid.jpeg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\the-little-mermaid.jpeg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/the-little-mermaid.jpeg",
       "AssetKind": "All",
@@ -511,10 +511,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\the-little-mermaid.jpeg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\the-tank.jpeg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\the-tank.jpeg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/the-tank.jpeg",
       "AssetKind": "All",
@@ -530,10 +530,10 @@
       "OriginalItemSpec": "wwwroot\\assets\\images\\the-tank.jpeg"
     },
     {
-      "Identity": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\assets\\images\\transformer.jpg",
+      "Identity": "D:\\Cinema_Website\\server\\wwwroot\\assets\\images\\transformer.jpg",
       "SourceId": "cinema_mng_backend",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Arseniy\\cinema_website\\server\\wwwroot\\",
+      "ContentRoot": "D:\\Cinema_Website\\server\\wwwroot\\",
       "BasePath": "_content/cinema_mng_backend",
       "RelativePath": "assets/images/transformer.jpg",
       "AssetKind": "All",
