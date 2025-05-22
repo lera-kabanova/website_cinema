@@ -11,6 +11,11 @@ import Booking from "./components/layout/Booking"
 import Halls from "./components/layout/Halls"
 import Profile from "./components/layout/Profile"
 import { ProtectedRoute } from "./ProtectedRoute"
+import Footer from "./components/layout/Footer"
+import PrivacyPage from "./components/pages/PrivacyPage"
+import TermsPage from "@/components/pages/TermsPage"
+import ContactsPage from "@/components/pages/ContactsPage"
+import AboutPage from "@/components/pages/AboutPage"
 
 const App = () => {
   return (
@@ -43,6 +48,10 @@ const App = () => {
                     </ProtectedRoute>
                   } 
                 />
+                <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="/terms" element={<TermsPage />} />
+                <Route path="/contacts" element={<ContactsPage />} />
+                <Route path="/about" element={<AboutPage />} />
                 <Route
                   path="*"
                   element={
@@ -54,6 +63,7 @@ const App = () => {
               </Routes>
             </main>
           </div>
+          <Footer />
         </div>
         <Toaster 
           position="top-center"
