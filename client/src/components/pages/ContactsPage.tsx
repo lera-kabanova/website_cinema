@@ -56,6 +56,7 @@ const ContactsPage: React.FC = () => {
           onChange={handleChange}
           required
         />
+        
         <input
           type="text"
           name="login"
