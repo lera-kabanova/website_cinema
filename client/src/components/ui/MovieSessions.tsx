@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface Session {
   id: number;
@@ -7,15 +8,22 @@ interface Session {
   hall: string;
   date: string;
   zones: { id: number; name: string; basePrice: number }[];
+  hallId: number;
 }
 
 interface Movie {
   id: number;
   title: string;
-  duration: string;
+  duration: number;
   genre: string;
   imageUrl: string;
+  description?: string;
+  director?: string;
+  year?: number;
+  ageRating?: string;
+  trailerUrl?: string;
   backgroundImageUrl?: string;
+  popularityScore: number;
 }
 
 interface MovieSessionsProps {
@@ -28,6 +36,13 @@ const MovieSessions: React.FC<MovieSessionsProps> = ({ sessions, movie }) => {
   const location = useLocation();
 
   const handleSessionClick = (session: Session) => {
+    if (!movie || !session) {
+      console.error('Missing movie or session data:', { movie, session });
+      toast.error('Недостаточно данных для перехода к бронированию');
+      return;
+    }
+
+    console.log('Navigating to booking:', { movie, session });
     navigate(`/booking/${session.id}`, {
       state: {
         movie,
@@ -37,6 +52,7 @@ const MovieSessions: React.FC<MovieSessionsProps> = ({ sessions, movie }) => {
           time: session.time,
           hall: session.hall,
           date: session.date,
+          hallId: session.hallId,
           zones: session.zones,
         },
       },

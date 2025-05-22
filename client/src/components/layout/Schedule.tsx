@@ -1,11 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  isSameDay,
-  isAfter,
-  format as dateFnsFormat,
-  addDays,
-} from 'date-fns';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { isSameDay, isAfter, format as dateFnsFormat, addDays } from 'date-fns';
 import DateSlider from '@/components/ui/DateSlider';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -47,7 +42,9 @@ interface ScheduleItem {
 
 const Schedule: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { token, role, isAuthenticated } = useAuth();
+  const selectedMovieId = location.state?.selectedMovieId;
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [schedules, setSchedules] = useState<ScheduleItem[]>([]);
@@ -67,20 +64,19 @@ const Schedule: React.FC = () => {
           },
           credentials: 'include',
         });
-        
+
         if (!response.ok) {
           const errorData = await response.json().catch(() => null);
           throw new Error(errorData?.message || `Ошибка загрузки расписания: ${response.status}`);
         }
-        
+
         const data = await response.json();
         console.log('Получено расписание:', data);
         setSchedules(data);
+        localStorage.setItem('cinema_schedule', JSON.stringify(data));
       } catch (error: unknown) {
         console.error('Ошибка загрузки расписания:', error);
-        const errorMessage = error instanceof Error 
-          ? error.message 
-          : 'Не удалось загрузить расписание. Проверьте подключение.';
+        const errorMessage = error instanceof Error ? error.message : 'Не удалось загрузить расписание. Проверьте подключение.';
         toast.error(errorMessage);
       }
     };
@@ -99,21 +95,16 @@ const Schedule: React.FC = () => {
   const filteredSchedule = useMemo(() => {
     return schedules.filter(item => {
       if (item.date !== formattedSelectedDate) return false;
+      if (selectedMovieId && item.movieId !== selectedMovieId) return false;
 
       if (isToday) {
         const [h, m] = item.time.split(':').map(Number);
-        const session = new Date(
-          selectedDate.getFullYear(),
-          selectedDate.getMonth(),
-          selectedDate.getDate(),
-          h,
-          m,
-        );
+        const session = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), h, m);
         return isAfter(session, currentTime);
       }
       return true;
     });
-  }, [schedules, formattedSelectedDate, isToday, selectedDate, currentTime]);
+  }, [schedules, formattedSelectedDate, isToday, selectedDate, currentTime, selectedMovieId]);
 
   const moviesOfDay = useMemo(() => {
     const movieIds = [...new Set(filteredSchedule.map(s => s.movieId))];
@@ -124,11 +115,16 @@ const Schedule: React.FC = () => {
     const sessionData = sessions.map(s => ({
       id: s.id,
       time: s.time,
-      hall: s.hall.type === 'standard' ? 'Стандартный зал' : s.hall.type === 'comfort' ? 'Комфортный зал' : 'VIP зал',
+      hall: s.hall.type === 'standard' ? 'Зал 1 (Стандартный)' : s.hall.type === 'comfort' ? 'Зал 2 (Комфортный)' : 'VIP Зал',
       date: s.date,
       zones: s.hall.zones,
+      hallId: s.hallId,
     }));
-    console.log('Переход на /movie/', movie.id, 'с данными:', { movie, scheduleData: sessionData });
+    console.log('Schedule.tsx goToMoviePage:', {
+      movie,
+      sessionData,
+      navigateTo: `/movie/${movie.id}`,
+    });
     navigate(`/movie/${movie.id}`, {
       state: {
         fromSchedule: true,
@@ -207,7 +203,8 @@ const Schedule: React.FC = () => {
 
       const newSchedules = await scheduleResponse.json();
       console.log('Обновленное расписание:', newSchedules);
-      setSchedules(newSchedules);
+      setSchedules(newSchedules.filter((s: ScheduleItem) => s.movie && s.hall && s.date && s.time));
+      localStorage.setItem('cinema_schedule', JSON.stringify(newSchedules));
       setIsDialogOpen(false);
       setStartDate('');
       setEndDate('');
@@ -226,13 +223,12 @@ const Schedule: React.FC = () => {
   };
 
   const getHallName = (type: 'standard' | 'vip' | 'comfort') => {
-    return type === 'standard' ? 'Зал 1' : type === 'comfort' ? 'Зал 2' : 'VIP Зал';
+    return type === 'standard' ? 'Зал 1 (Стандартный)' : type === 'comfort' ? 'Зал 2 (Комфортный)' : 'VIP Зал';
   };
 
   return (
     <section className="relative px-4 py-6 bg-cinema-primary text-cinema-text min-h-screen pt-20">
       <header className="mb-6">
-        {/* <h1 className="text-3xl font-bold mb-4">Расписание</h1> */}
         <DateSlider selectedDate={selectedDate} onDateChange={setSelectedDate} />
         {role === 'Admin' && (
           <Button
@@ -243,7 +239,6 @@ const Schedule: React.FC = () => {
           </Button>
         )}
       </header>
-
       <Dialog open={isDialogOpen} onOpenChange={(open) => !isGenerating && setIsDialogOpen(open)}>
         <DialogContent className="bg-gray-800 text-white">
           <DialogHeader>
@@ -260,7 +255,9 @@ const Schedule: React.FC = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label htmlFor="startDate" className="block text-sm text-gray-400">Начальная дата</label>
+              <label htmlFor="startDate" className="block text-sm text-gray-400">
+                Начальная дата
+              </label>
               <Input
                 id="startDate"
                 type="date"
@@ -271,7 +268,9 @@ const Schedule: React.FC = () => {
               />
             </div>
             <div>
-              <label htmlFor="endDate" className="block text-sm text-gray-400">Конечная дата</label>
+              <label htmlFor="endDate" className="block text-sm text-gray-400">
+                Конечная дата
+              </label>
               <Input
                 id="endDate"
                 type="date"
@@ -301,35 +300,25 @@ const Schedule: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {moviesOfDay.length ? (
         <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {moviesOfDay.map(movie => {
             const times = filteredSchedule
               .filter(s => s.movieId === movie.id)
               .sort((a, b) => a.time.localeCompare(b.time));
-
             return (
-              <article
-                key={movie.id}
-                className="bg-white/5 rounded-lg overflow-hidden hover:bg-white/10 transition"
-              >
-                <div 
+              <article key={movie.id} className="bg-white/5 rounded-lg overflow-hidden hover:bg-white/10 transition">
+                <div
                   className="relative w-full aspect-[2/3] cursor-pointer"
                   onClick={() => goToMoviePage(movie, times)}
                 >
-                  <img
-                    src={movie.imageUrl}
-                    alt={movie.title}
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={movie.imageUrl} alt={movie.title} className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                 </div>
-
                 <div className="p-3">
                   <h3 className="text-lg font-bold mb-1 line-clamp-1">{movie.title}</h3>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {times.map((session) => (
+                    {times.map(session => (
                       <div
                         key={session.id}
                         className="bg-cinema-accent text-white rounded-sm text-center px-2 py-1 text-xs inline-flex items-center justify-center min-w-[100px]"
@@ -344,9 +333,7 @@ const Schedule: React.FC = () => {
           })}
         </div>
       ) : (
-        <p className="text-center text-gray-400 text-lg mt-10">
-          Нет сеансов на выбранную дату
-        </p>
+        <p className="text-center text-gray-400 text-lg mt-10">Нет сеансов на выбранную дату</p>
       )}
     </section>
   );

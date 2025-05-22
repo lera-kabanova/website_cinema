@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useParams, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Clock3, Armchair, Sofa, BedDouble, LucideProps } from 'lucide-react';
 import { format, isSameDay, startOfDay, isAfter } from 'date-fns';
+import { Locale } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
+import axios from 'axios';
 
 interface Movie {
   id: number;
@@ -13,6 +15,7 @@ interface Movie {
   genre: string;
   imageUrl: string;
   backgroundImageUrl?: string;
+  popularityScore: number; // Добавлено для популярности
 }
 
 interface SessionData {
@@ -20,13 +23,50 @@ interface SessionData {
   time: string;
   hall: string;
   date: string;
-  zones: { id: number; name: string; basePrice: number }[];
+  hallId: number;
+  zones?: { id: number; name: string; basePrice: number }[];
+}
+
+interface ScheduleItem {
+  id: number;
+  movieId: number;
+  hallId: number;
+  date: string;
+  time: string;
+  format: string;
 }
 
 interface TicketType {
-  id: number;
+  id: string;
   name: string;
-  multiplier: number;
+  multiplier: number; // Добавлено для множителя
+}
+
+interface Row {
+  id: number;
+  hallId: number;
+  number: number;
+  seats: number;
+  type: SeatType;
+  spacing: 'normal' | 'wide' | 'extraWide';
+}
+
+interface HallConfig {
+  hallId: number;
+  rows: Row[];
+  takenSeats: string[];
+}
+
+interface SeatInfoApi {
+  seatId: string;
+  isTaken: boolean;
+  zoneId: number;
+  zoneName: string;
+  seatType: SeatType;
+  basePrice: number;
+  popularityPrice: number;
+  timeSlotPrice: number;
+  finalPrice: number;
 }
 
 type SeatType = 'standard' | 'sofa' | 'loveSeat' | 'recliner';
@@ -41,24 +81,7 @@ interface SeatInfo {
   isDouble?: boolean;
 }
 
-interface HallConfig {
-  rows: {
-    number: number;
-    seats: number;
-    type: SeatType;
-    spacing: 'normal' | 'wide' | 'extraWide';
-  }[];
-  takenSeats: string[];
-}
-
-interface SelectedSeat {
-  seatId: string;
-  ticketTypeId: number;
-  zoneId: number;
-  price: number;
-}
-
-interface CustomLocale {
+interface CustomLocale extends Locale {
   localize: {
     day: (n: number) => string;
     ordinalNumber: (d: number) => string;
@@ -88,11 +111,17 @@ const hallNames: Record<number, string> = {
   3: 'VIP Зал',
 };
 
+const ticketTypes: TicketType[] = [
+  { id: '1', name: 'Стандартный', multiplier: 1.0 },
+  { id: '2', name: 'Студенческий', multiplier: 0.8 },
+  { id: '3', name: 'Пенсионный', multiplier: 0.7 },
+];
+
 const seatTypes: Record<SeatType, SeatInfo> = {
   standard: {
     type: 'standard',
     price: 10,
-    label: 'Стандартное кресло',
+    label: 'Стандарт',
     icon: <Armchair className="w-4 h-4 text-white" />,
     color: 'bg-blue-600/70',
     description: 'Одноместное кресло с откидной спинкой и подстаканником',
@@ -109,7 +138,7 @@ const seatTypes: Record<SeatType, SeatInfo> = {
   loveSeat: {
     type: 'loveSeat',
     price: 18,
-    label: 'LoveSeats',
+    label: 'Love Seat',
     icon: <BedDouble className="w-4 h-4 text-white" />,
     color: 'bg-pink-400/70',
     description: 'Двухместное кресло с подъемным подлокотником',
@@ -125,175 +154,190 @@ const seatTypes: Record<SeatType, SeatInfo> = {
   },
 };
 
-const getHallConfig = (hallId: number): HallConfig => {
-  switch (hallId) {
-    case 1:
-      return {
-        rows: [
-          { number: 1, seats: 5, type: 'sofa', spacing: 'extraWide' },
-          { number: 2, seats: 10, type: 'standard', spacing: 'normal' },
-          { number: 3, seats: 10, type: 'standard', spacing: 'normal' },
-          { number: 4, seats: 10, type: 'standard', spacing: 'normal' },
-          { number: 5, seats: 10, type: 'standard', spacing: 'normal' },
-          { number: 6, seats: 10, type: 'standard', spacing: 'normal' },
-          { number: 7, seats: 10, type: 'standard', spacing: 'normal' },
-          { number: 8, seats: 10, type: 'standard', spacing: 'normal' },
-          { number: 9, seats: 8, type: 'loveSeat', spacing: 'wide' },
-        ],
-        takenSeats: ['1-2', '1-3', '2-5', '3-7', '4-2', '5-8', '6-3', '7-6', '8-1', '9-4'],
-      };
-    case 2:
-      return {
-        rows: [
-          { number: 1, seats: 5, type: 'sofa', spacing: 'extraWide' },
-          { number: 2, seats: 10, type: 'standard', spacing: 'normal' },
-          { number: 3, seats: 10, type: 'standard', spacing: 'normal' },
-          { number: 4, seats: 10, type: 'standard', spacing: 'normal' },
-          { number: 5, seats: 10, type: 'standard', spacing: 'normal' },
-          { number: 6, seats: 10, type: 'standard', spacing: 'normal' },
-          { number: 7, seats: 10, type: 'standard', spacing: 'normal' },
-          { number: 8, seats: 10, type: 'standard', spacing: 'normal' },
-          { number: 9, seats: 8, type: 'loveSeat', spacing: 'wide' },
-          { number: 10, seats: 6, type: 'recliner', spacing: 'wide' },
-        ],
-        takenSeats: ['1-2', '1-3', '2-5', '3-7', '4-2', '5-8', '6-3', '7-6', '8-1', '9-4', '10-2'],
-      };
-    case 3:
-      return {
-        rows: [
-          { number: 1, seats: 8, type: 'loveSeat', spacing: 'normal' },
-          { number: 2, seats: 8, type: 'loveSeat', spacing: 'normal' },
-          { number: 3, seats: 8, type: 'recliner', spacing: 'normal' },
-          { number: 4, seats: 8, type: 'recliner', spacing: 'normal' },
-          { number: 5, seats: 6, type: 'sofa', spacing: 'wide' },
-          { number: 6, seats: 6, type: 'sofa', spacing: 'wide' },
-        ],
-        takenSeats: ['1-3', '2-5', '3-2', '4-7', '5-4', '6-1'],
-      };
-    default:
-      return { rows: [], takenSeats: [] };
-  }
-};
-
 const Booking: React.FC = () => {
-  const { sessionId } = useParams<{ sessionId: string }>();
   const location = useLocation();
   const navigate = useNavigate();
-  const { token, isAuthenticated } = useAuth();
+  const { token } = useAuth();
 
-  // Проверяем наличие необходимых данных
-  const movie = location.state?.movie as Movie | undefined;
-  const bookingType = location.state?.bookingType as 'full' | 'quick' | undefined;
-  const sessionData = location.state?.sessionData as SessionData | undefined;
-
+  const [movie, setMovie] = useState<Movie | null>(location.state?.movie || null);
+  const [bookingType, setBookingType] = useState<'full' | 'quick'>(
+    location.state?.bookingType || 'quick'
+  );
+  const [sessionData, setSessionData] = useState<SessionData | null>(
+    location.state?.sessionData || null
+  );
   const [selectedDate, setSelectedDate] = useState<Date>(
-    bookingType === 'quick' && sessionData ? new Date(sessionData.date) : startOfDay(new Date())
+    location.state?.sessionData
+      ? new Date(location.state.sessionData.date)
+      : startOfDay(new Date())
   );
   const [selectedTime, setSelectedTime] = useState<string>(
-    bookingType === 'quick' && sessionData ? sessionData.time : ''
+    location.state?.sessionData?.time || ''
   );
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
-    bookingType === 'quick' && typeof sessionId === 'string' ? sessionId : null
-  );
-  const [selectedSeats, setSelectedSeats] = useState<SelectedSeat[]>([]);
-  const [availableTimes, setAvailableTimes] = useState<{ time: string; hallId: number; id: number }[]>([]);
+  const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
+  const [availableTimes, setAvailableTimes] = useState<{ time: string; hallId: number }[]>([]);
   const [currentSeat, setCurrentSeat] = useState<string | null>(null);
-  const [ticketTypes, setTicketTypes] = useState<TicketType[]>([]);
+  const [selectedTicketType, setSelectedTicketType] = useState<string>('1');
   const [currentTime] = useState<Date>(new Date());
-  const [hallConfig, setHallConfig] = useState<HallConfig>({ rows: [], takenSeats: [] });
+  const [hallConfig, setHallConfig] = useState<HallConfig>({ hallId: 0, rows: [], takenSeats: [] });
+  const [seatInfoApi, setSeatInfoApi] = useState<SeatInfoApi[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  // Проверка входных данных
+  // Загрузка рядов зала
   useEffect(() => {
-    if (!sessionId || !movie || !bookingType) {
-      toast.error('Недостаточно данных для бронирования');
-      navigate('/');
-      return;
+    if (sessionData?.hallId) {
+      axios
+        .get(`http://localhost:5218/api/cinema/halls/${sessionData.hallId}/rows`)
+        .then(response => {
+          const rows: Row[] = response.data;
+          setHallConfig({ hallId: sessionData.hallId, rows, takenSeats: [] });
+        })
+        .catch(error => {
+          console.error('Ошибка загрузки рядов:', error);
+          toast.error('Не удалось загрузить схему зала');
+        });
     }
-    if (bookingType === 'quick' && !sessionData) {
-      toast.error('Данные сеанса отсутствуют');
-      navigate('/');
-      return;
-    }
-  }, [sessionId, movie, bookingType, sessionData, navigate]);
+  }, [sessionData?.hallId]);
 
+  // Загрузка сеанса и фильма
   useEffect(() => {
-    const fetchTicketTypes = async () => {
-      try {
-        const response = await fetch('http://localhost:5218/api/cinema/ticket-types');
-        if (!response.ok) throw new Error('Ошибка загрузки типов билетов');
-        const data = await response.json();
-        setTicketTypes(data);
-      } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
-        toast.error(errorMessage);
+    const fetchSessionAndMovie = async () => {
+      if (!movie || !sessionData || !sessionData.id) {
+        try {
+          setLoading(true);
+          if (!sessionData?.id) {
+            throw new Error('Идентификатор сеанса отсутствует в данных');
+          }
+          const sessionResponse = await fetch(
+            `http://localhost:5218/api/cinema/schedules/${sessionData.id}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          if (!sessionResponse.ok) {
+            throw new Error(`Не удалось загрузить данные сеанса: ${sessionResponse.status}`);
+          }
+          const session = await sessionResponse.json();
+          setSessionData({
+            id: session.id,
+            time: session.time,
+            hall: session.hall.name,
+            date: session.date,
+            hallId: session.hallId,
+            zones: session.hall.zones || [],
+          });
+          setSelectedTime(session.time);
+          setSelectedDate(new Date(session.date));
+
+          const movieResponse = await fetch(
+            `http://localhost:5218/api/cinema/movies/${session.movieId}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          if (!movieResponse.ok) {
+            throw new Error(`Не удалось загрузить данные фильма: ${movieResponse.status}`);
+          }
+          const movieData = await movieResponse.json();
+          setMovie(movieData);
+        } catch (error: any) {
+          console.error('Error fetching session or movie:', error);
+          toast.error(`Ошибка загрузки данных: ${error.message}`);
+          navigate('/schedule');
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
       }
     };
 
-    fetchTicketTypes();
-  }, []);
+    fetchSessionAndMovie();
+  }, [sessionData?.id, movie?.id, token, navigate]);
 
+  // Загрузка доступных сеансов
   useEffect(() => {
-    if (bookingType === 'quick' && sessionData && sessionId) {
-      if (!sessionData.hall) {
-        toast.error('Название зала отсутствует в данных сеанса');
-        navigate('/');
-        return;
+    if (bookingType === 'full' && movie?.id) {
+      const storedSchedule = localStorage.getItem('cinema_schedule');
+      if (storedSchedule) {
+        const schedule: ScheduleItem[] = JSON.parse(storedSchedule);
+        const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+
+        const movieSessions = schedule.filter(
+          s => s.movieId === movie.id && s.date === formattedDate
+        );
+
+        const now = currentTime;
+        const futureTimes = movieSessions
+          .filter(session => {
+            const [hours, minutes] = session.time.split(':').map(Number);
+            const sessionTime = new Date(selectedDate);
+            sessionTime.setHours(hours, minutes);
+            return isAfter(sessionTime, now);
+          })
+          .sort((a, b) => a.time.localeCompare(b.time))
+          .map(session => ({ time: session.time, hallId: session.hallId }));
+
+        setAvailableTimes(futureTimes);
       }
-      const hallId = Object.keys(hallNames).find(
-        key => hallNames[parseInt(key)] === sessionData.hall
-      );
-      if (!hallId) {
-        toast.error('Неверный зал в данных сеанса');
-        navigate('/');
-        return;
-      }
-      setHallConfig(getHallConfig(parseInt(hallId)));
     }
-  }, [bookingType, sessionData, sessionId, navigate]);
+  }, [selectedDate, movie?.id, currentTime, bookingType]);
 
+  // Загрузка мест
   useEffect(() => {
-    if (bookingType === 'full' && movie) {
-      const fetchSchedule = async () => {
+    if (selectedTime && sessionData?.id && sessionData?.hallId) {
+      const session = availableTimes.find(t => t.time === selectedTime) || {
+        time: selectedTime,
+        hallId: sessionData.hallId,
+      };
+      if (session && session.hallId !== hallConfig.hallId) {
+        axios
+          .get(`http://localhost:5218/api/cinema/halls/${session.hallId}/rows`)
+          .then(response => {
+            const rows: Row[] = response.data;
+            setHallConfig({ hallId: session.hallId, rows, takenSeats: [] });
+          })
+          .catch(error => {
+            console.error('Ошибка загрузки рядов:', error);
+            toast.error('Не удалось загрузить схему зала');
+          });
+      }
+
+      const controller = new AbortController();
+      const fetchSeats = async () => {
         try {
-          const response = await fetch('http://localhost:5218/api/cinema/schedule');
-          if (!response.ok) throw new Error('Ошибка загрузки расписания');
-          const schedule: { id: number; movieId: number; hallId: number; date: string; time: string }[] =
-            await response.json();
-          const formattedDate = format(selectedDate, 'yyyy-MM-dd');
-
-          const movieSessions = schedule.filter(s => s.movieId === movie.id && s.date === formattedDate);
-
-          const now = currentTime;
-          const futureTimes = movieSessions
-            .filter(session => {
-              const [hours, minutes] = session.time.split(':').map(Number);
-              const sessionTime = new Date(selectedDate);
-              sessionTime.setHours(hours, minutes);
-              return isAfter(sessionTime, now);
-            })
-            .sort((a, b) => a.time.localeCompare(b.time))
-            .map(session => ({ time: session.time, hallId: session.hallId, id: session.id }));
-
-          setAvailableTimes(futureTimes);
-        } catch (error: unknown) {
-          const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
-          toast.error(errorMessage);
+          console.log('Fetching seats for session:', sessionData.id);
+          const response = await fetch(
+            `http://localhost:5218/api/cinema/bookings/seats/${sessionData.id}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+              signal: controller.signal,
+            }
+          );
+          if (!response.ok) {
+            throw new Error(`Failed to fetch seat data: ${response.status}`);
+          }
+          const data: SeatInfoApi[] = await response.json();
+          setSeatInfoApi(data);
+          const takenSeats = data.filter(seat => seat.isTaken).map(seat => seat.seatId);
+          setHallConfig(prev => ({ ...prev, takenSeats }));
+        } catch (error: any) {
+          if (error.name === 'AbortError') {
+            console.log('Fetch seats request was aborted');
+            return;
+          }
+          console.error('Error fetching seats:', error);
+          toast.error('Ошибка загрузки мест');
         }
       };
 
-      fetchSchedule();
-    }
-  }, [selectedDate, movie, currentTime, bookingType]);
+      fetchSeats();
 
-  useEffect(() => {
-    if (selectedTime && bookingType === 'full') {
-      const session = availableTimes.find(t => t.time === selectedTime);
-      if (session) {
-        setHallConfig(getHallConfig(session.hallId));
-        setSelectedSessionId(session.id.toString());
-      }
+      return () => {
+        controller.abort();
+      };
     }
-  }, [selectedTime, availableTimes, bookingType]);
+  }, [selectedTime, sessionData?.id, sessionData?.hallId, token]);
 
   const getDayLabel = (date: Date) => {
     const today = startOfDay(new Date());
@@ -306,37 +350,23 @@ const Booking: React.FC = () => {
   );
 
   const handleSeatClick = (seat: string) => {
-    if (selectedSeats.some(s => s.seatId === seat)) {
+    if (selectedSeats.includes(seat)) {
       handleRemoveSeat(seat);
       return;
     }
     setCurrentSeat(seat);
+    if (!selectedSeats.includes(seat)) {
+      setSelectedSeats(prev => [...prev, seat]);
+    }
   };
 
   const handleRemoveSeat = (seat: string) => {
-    setSelectedSeats(prev => prev.filter(s => s.seatId !== seat));
-  };
-
-  const handleTicketTypeSelect = (ticketTypeId: number) => {
-    if (!currentSeat) return;
-
-    const rowNumber = parseInt(currentSeat.split('-')[0]);
-    const seatType = hallConfig.rows.find(r => r.number === rowNumber)?.type || 'standard';
-    const zone = sessionData?.zones.find(z => z.name.toLowerCase().includes(seatType)) || sessionData?.zones[0];
-    const ticketType = ticketTypes.find(t => t.id === ticketTypeId);
-    const price = zone ? zone.basePrice * (ticketType?.multiplier || 1) : seatTypes[seatType].price;
-
-    setSelectedSeats(prev => [
-      ...prev.filter(s => s.seatId !== currentSeat),
-      { seatId: currentSeat, ticketTypeId, zoneId: zone?.id || 0, price },
-    ]);
-    setCurrentSeat(null);
+    setSelectedSeats(prev => prev.filter(s => s !== seat));
   };
 
   const handleDateChange = (date: Date) => {
     setSelectedDate(date);
     setSelectedTime('');
-    setSelectedSessionId(null);
     setSelectedSeats([]);
   };
 
@@ -346,6 +376,49 @@ const Booking: React.FC = () => {
 
   const renderSeatIcon = (icon: React.ReactElement<LucideProps>, className: string) => {
     return React.cloneElement(icon, { className });
+  };
+
+  const handleBookingSubmit = async () => {
+    if (!selectedSeats.length || !sessionData?.id) {
+      toast.error('Выберите места и сеанс');
+      return;
+    }
+
+    try {
+      const bookingRequests = selectedSeats.map(seat => {
+        const seatData = seatInfoApi.find(s => s.seatId === seat);
+        return {
+          scheduleId: sessionData.id,
+          zoneId: seatData?.zoneId || 1,
+          ticketTypeId: parseInt(selectedTicketType), // Преобразуем в число
+          seatId: seat,
+        };
+      });
+
+      const responses = await Promise.all(
+        bookingRequests.map(request =>
+          fetch('http://localhost:5218/api/cinema/bookings', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(request),
+          })
+        )
+      );
+
+      const errors = responses.filter(r => !r.ok);
+      if (errors.length) {
+        throw new Error('Ошибка при бронировании некоторых мест');
+      }
+
+      toast.success('Бронирование успешно!');
+      navigate('/my-tickets');
+    } catch (error) {
+      console.error('Booking error:', error);
+      toast.error('Ошибка при бронировании');
+    }
   };
 
   const calculateSeatPositions = (row: {
@@ -367,7 +440,9 @@ const Booking: React.FC = () => {
       .map((_, seatIndex) => {
         const seatId = `${row.number}-${seatIndex + 1}`;
         const isTaken = hallConfig.takenSeats.includes(seatId);
-        const isSelected = selectedSeats.some(s => s.seatId === seatId);
+        const isSelected = selectedSeats.includes(seatId);
+        const seatData = seatInfoApi.find(s => s.seatId === seatId);
+        const price = seatData?.finalPrice || seatInfo.price;
 
         return (
           <div key={seatId} className="relative group" style={{ margin: `0 ${gapBetweenSeats / 2}px` }}>
@@ -404,7 +479,7 @@ const Booking: React.FC = () => {
               "
             >
               <div>{seatInfo.label}</div>
-              <div className="text-cinema-accent">{seatInfo.price} BYN</div>
+              <div className="text-cinema-accent">{price.toFixed(2)} BYN</div>
               <div>Ряд {row.number}, Место {seatIndex + 1}</div>
             </div>
           </div>
@@ -412,77 +487,58 @@ const Booking: React.FC = () => {
       });
   };
 
-  const handleBooking = async () => {
-    if (!isAuthenticated) {
-      toast.error('Пожалуйста, войдите в систему для бронирования');
-      navigate('/login');
-      return;
-    }
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-900">
+        <div className="text-white text-xl">Загрузка...</div>
+      </div>
+    );
+  }
 
-    if (selectedSeats.length === 0) {
-      toast.error('Выберите хотя бы одно место');
-      return;
-    }
-
-    if (!selectedSessionId) {
-      toast.error('Идентификатор сеанса отсутствует');
-      return;
-    }
-
-    try {
-      for (const seat of selectedSeats) {
-        const response = await fetch('http://localhost:5218/api/cinema/bookings', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            scheduleId: Number(selectedSessionId),
-            zoneId: seat.zoneId,
-            ticketTypeId: seat.ticketTypeId,
-          }),
-        });
-
-        if (!response.ok) throw new Error('Ошибка бронирования');
-      }
-
-      toast.success('Билеты успешно забронированы');
-      navigate('/profile');
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
-      toast.error(errorMessage);
-    }
-  };
-
-  if (!movie || !bookingType) {
-    return null; // Рендеринг прекращается, так как редирект уже выполнен в useEffect
+  if (!movie || !sessionData) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-900">
+        <div className="text-white text-xl">Ошибка: данные о фильме или сеансе отсутствуют</div>
+        <button
+          onClick={() => navigate('/schedule')}
+          className="ml-4 px-4 py-2 bg-cinema-accent text-white rounded-md hover:bg-cinema-accent/90"
+        >
+          Вернуться к расписанию
+        </button>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-900">
-      {movie.backgroundImageUrl && (
+      <div className="px-8 py-4">
+        <button
+          onClick={() => navigate(-1)}
+          className="text-white bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-600"
+        >
+          Назад
+        </button>
+      </div>
+      {movie?.backgroundImageUrl && (
         <div className="relative h-80 w-full overflow-hidden">
           <img src={movie.backgroundImageUrl} alt={movie.title} className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/70 to-black/30"></div>
           <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-gray-900 to-transparent"></div>
         </div>
       )}
-
       <section className="px-8 py-6 text-cinema-text relative z-10 -mt-20">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-white">{movie.title}</h1>
+              <h1 className="text-3xl font-bold text-white">{movie?.title}</h1>
               <div className="flex gap-4 text-gray-400 mt-2">
-                <span>{movie.duration}</span>
+                <span>{movie?.duration}</span>
                 <span>|</span>
-                <span>{movie.genre}</span>
+                <span>{movie?.genre}</span>
               </div>
             </div>
             <Clock3 className="text-cinema-accent w-10 h-10" />
           </div>
-
           {bookingType === 'full' && (
             <>
               <div className="mb-8">
@@ -493,15 +549,13 @@ const Booking: React.FC = () => {
                       <button
                         key={date.toString()}
                         onClick={() => handleDateChange(date)}
-                        className={`
-                          flex flex-col items-center min-w-[120px] px-4 py-3 rounded-md whitespace-nowrap border 
+                        className={`flex flex-col items-center min-w-[120px] px-4 py-3 rounded-md whitespace-nowrap border 
                           transition-all duration-300 ease-out
                           ${
                             isSelected
                               ? 'bg-cinema-accent text-white shadow-lg shadow-cinema-accent/40'
                               : 'bg-white/5 text-white border-white/20 hover:bg-white/15 hover:shadow-md hover:shadow-white/10'
-                          }
-                        `}
+                          }`}
                       >
                         <span className="text-sm font-medium">{getDayLabel(date)}</span>
                       </button>
@@ -509,25 +563,21 @@ const Booking: React.FC = () => {
                   })}
                 </div>
               </div>
-
               {availableTimes.length > 0 ? (
                 <div className="flex flex-wrap gap-4 mb-10">
-                  {availableTimes.map(({ time, hallId, id }) => (
+                  {availableTimes.map(({ time, hallId }) => (
                     <button
                       key={time}
                       onClick={() => {
                         setSelectedTime(time);
-                        setSelectedSessionId(id.toString());
                         setSelectedSeats([]);
                       }}
-                      className={`
-                        px-6 py-3 rounded-md text-lg font-medium flex flex-col items-start
+                      className={`px-6 py-3 rounded-md text-lg font-medium flex flex-col items-start
                         ${
                           selectedTime === time
                             ? 'bg-cinema-accent text-white shadow-lg shadow-cinema-accent/40'
                             : 'bg-white/5 text-white hover:bg-white/10'
-                        }
-                      `}
+                        }`}
                     >
                       <span>{time}</span>
                       <span className="text-sm text-gray-300 mt-1">{hallNames[hallId] || `Зал ${hallId}`}</span>
@@ -539,8 +589,7 @@ const Booking: React.FC = () => {
               )}
             </>
           )}
-
-          {bookingType === 'quick' && sessionData && (
+          {bookingType === 'quick' && (
             <div className="mb-10 p-4 bg-white/5 rounded-lg border border-white/10">
               <h3 className="text-xl font-bold text-white mb-2">Выбранный сеанс</h3>
               <div className="flex flex-wrap gap-4 text-gray-300">
@@ -552,19 +601,17 @@ const Booking: React.FC = () => {
                   <span className="text-cinema-accent">Время: </span>
                   {sessionData.time}
                   <span className="text-cinema-accent">Зал: </span>
-                  {sessionData.hall}
+                  {hallNames[sessionData.hallId] || sessionData.hall}
                 </div>
               </div>
             </div>
           )}
-
-          {(selectedTime || (bookingType === 'quick' && sessionData)) && (
+          {selectedTime && (
             <>
               <div className="relative mb-8">
                 <div className="h-2 bg-gradient-to-r from-transparent via-cinema-accent/80 to-transparent rounded-full w-full mx-auto" />
                 <div className="text-center mt-2 text-gray-300 tracking-widest font-medium">ЭКРАН</div>
               </div>
-
               <div className="flex justify-center mb-10 relative hall-container">
                 <div className="flex flex-col">
                   <div className="bg-gray-800/50 p-6 rounded-lg">
@@ -580,7 +627,6 @@ const Booking: React.FC = () => {
                   </div>
                 </div>
               </div>
-
               <div className="flex justify-center gap-8 mb-10 text-sm text-gray-400 flex-wrap">
                 {Object.values(seatTypes).map(type => (
                   <div key={type.type} className="flex items-center gap-2">
@@ -598,7 +644,6 @@ const Booking: React.FC = () => {
               </div>
             </>
           )}
-
           {currentSeat && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
               <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full">
@@ -607,21 +652,15 @@ const Booking: React.FC = () => {
                   {ticketTypes.map(ticket => {
                     const rowNumber = parseInt(currentSeat.split('-')[0]);
                     const seatType = hallConfig.rows.find(r => r.number === rowNumber)?.type || 'standard';
-                    const zone = sessionData?.zones.find(z => z.name.toLowerCase().includes(seatType)) || sessionData?.zones[0];
-                    const price = zone ? zone.basePrice * ticket.multiplier : seatTypes[seatType].price;
+                    const seatData = seatInfoApi.find(s => s.seatId === currentSeat);
+                    const price = seatData ? seatData.finalPrice * ticket.multiplier : seatTypes[seatType].price;
 
                     return (
                       <div
                         key={ticket.id}
-                        onClick={() => handleTicketTypeSelect(ticket.id)}
-                        className={`
-                          p-3 rounded-lg border cursor-pointer 
-                          ${
-                            selectedSeats.some(s => s.seatId === currentSeat && s.ticketTypeId === ticket.id)
-                              ? 'border-cinema-accent'
-                              : 'border-gray-600'
-                          }
-                        `}
+                        onClick={() => setSelectedTicketType(ticket.id)}
+                        className={`p-3 rounded-lg border cursor-pointer 
+                          ${selectedTicketType === ticket.id ? 'border-cinema-accent' : 'border-gray-600'}`}
                       >
                         <div className="flex justify-between">
                           <span>{ticket.name}</span>
@@ -633,41 +672,46 @@ const Booking: React.FC = () => {
                 </div>
                 <div className="flex justify-end gap-3">
                   <button
-                    onClick={() => setCurrentSeat(null)}
+                    onClick={() => {
+                      handleRemoveSeat(currentSeat);
+                      setCurrentSeat(null);
+                    }}
                     className="px-4 py-2 text-white bg-gray-700 rounded-lg hover:bg-gray-600"
                   >
                     Отмена
+                  </button>
+                  <button
+                    onClick={() => setCurrentSeat(null)}
+                    className="px-4 py-2 text-white bg-cinema-accent rounded-lg hover:bg-cinema-accent/90"
+                  >
+                    Применить
                   </button>
                 </div>
               </div>
             </div>
           )}
-
           {selectedSeats.length > 0 && (
             <div className="mb-6 bg-white/5 rounded-lg p-4">
               <h3 className="text-lg font-bold text-white mb-3">Выбранные места</h3>
               <div className="flex flex-wrap gap-3">
                 {selectedSeats.map(seat => {
-                  const rowNumber = parseInt(seat.seatId.split('-')[0]);
-                  const seatType = hallConfig.rows.find(r => r.number === rowNumber)?.type || 'standard';
+                  const [row] = seat.split('-');
+                  const seatType = hallConfig.rows.find(r => r.number === parseInt(row))?.type || 'standard';
                   const seatInfo = getSeatInfo(seatType);
-                  const ticketType = ticketTypes.find(t => t.id === seat.ticketTypeId);
+                  const seatData = seatInfoApi.find(s => s.seatId === seat);
+                  const ticket = ticketTypes.find(t => t.id === selectedTicketType);
+                  const price = seatData ? seatData.finalPrice * (ticket?.multiplier || 1.0) : seatInfo.price;
 
                   return (
                     <div
-                      key={seat.seatId}
+                      key={seat}
                       className="bg-cinema-accent/30 border border-cinema-accent rounded-lg px-3 py-2 flex items-center"
                     >
                       <div className={`w-4 h-4 ${seatInfo.color} rounded-sm mr-2`}></div>
-                      <span className="font-medium text-white">{seat.seatId}</span>
+                      <span className="font-medium text-white">{seat}</span>
                       <span className="mx-2 text-gray-300">|</span>
-                      <span className="text-gray-300">
-                        {seatInfo.label} - {ticketType?.name} - {seat.price.toFixed(2)} BYN
-                      </span>
-                      <button
-                        onClick={() => handleRemoveSeat(seat.seatId)}
-                        className="ml-2 text-gray-300 hover:text-white"
-                      >
+                      <span className="text-gray-300">{seatInfo.label} - {price.toFixed(2)} BYN</span>
+                      <button onClick={() => handleRemoveSeat(seat)} className="ml-2 text-gray-300 hover:text-white">
                         ×
                       </button>
                     </div>
@@ -676,26 +720,22 @@ const Booking: React.FC = () => {
               </div>
             </div>
           )}
-
           <div className="flex justify-end">
             <button
               disabled={selectedSeats.length === 0}
-              onClick={handleBooking}
-              className={`
-                bg-cinema-accent text-white py-4 px-10 rounded-full text-lg font-bold transition-all
+              onClick={handleBookingSubmit}
+              className={`bg-cinema-accent text-white py-4 px-10 rounded-full text-lg font-bold transition-all
                 ${
                   selectedSeats.length > 0
                     ? 'hover:bg-cinema-accent/90 hover:shadow-lg hover:shadow-cinema-accent/40'
                     : 'opacity-50 cursor-not-allowed'
-                }
-              `}
+                }`}
             >
-              Перейти к оплате →
+              Перейти к оформлению →
             </button>
           </div>
         </div>
       </section>
-
       <div className="h-32 bg-gradient-to-t from-gray-900 to-transparent w-full"></div>
     </div>
   );

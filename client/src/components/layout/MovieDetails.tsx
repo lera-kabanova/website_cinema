@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { Clock } from 'lucide-react';
 import { toast } from 'sonner';
@@ -7,7 +7,7 @@ import MovieSessions from '@/components/ui/MovieSessions';
 interface Movie {
   id: number;
   title: string;
-  duration: string;
+  duration: number;
   genre: string;
   imageUrl: string;
   description?: string;
@@ -16,6 +16,7 @@ interface Movie {
   ageRating?: string;
   trailerUrl?: string;
   backgroundImageUrl?: string;
+  popularityScore: number;
 }
 
 interface SessionData {
@@ -24,6 +25,7 @@ interface SessionData {
   hall: string;
   date: string;
   zones: { id: number; name: string; basePrice: number }[];
+  hallId: number;
 }
 
 const hallDescriptions: Record<string, string> = {
@@ -37,60 +39,71 @@ const MovieDetails: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [movie, setMovie] = useState<Movie | null>(location.state?.movie || null);
+  const [sessions, setSessions] = useState<SessionData[]>(location.state?.scheduleData || []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const sessions: SessionData[] = location.state?.scheduleData || [];
+
+  const fetchMovieDetails = useCallback(async () => {
+  // Если всё уже загружено из location.state — ничего не делаем
+  if (movie && sessions.length > 0) {
+    setLoading(false);
+    return;
+  }
+
+  try {
+    setLoading(true);
+    setError(null);
+
+    if (!id) {
+      throw new Error('Идентификатор фильма отсутствует');
+    }
+
+    // Загружаем фильм, если его нет или ID отличается
+    if (!movie || movie.id.toString() !== id) {
+      const movieResponse = await fetch(`http://localhost:5218/api/cinema/movies/${id}`);
+      if (!movieResponse.ok) {
+        throw new Error(`Не удалось загрузить информацию о фильме: ${movieResponse.status}`);
+      }
+      const movieData = await movieResponse.json();
+      setMovie(movieData);
+    }
+
+    // Загружаем сеансы, если их нет
+    if (sessions.length === 0) {
+      const sessionResponse = await fetch(`http://localhost:5218/api/cinema/schedules?movieId=${id}`);
+      if (!sessionResponse.ok) {
+        throw new Error('Не удалось загрузить сеансы');
+      }
+      const sessionData = await sessionResponse.json();
+      const validSessions = sessionData.filter(
+        (s: SessionData) => s.id && s.time && s.hall && s.date && s.hallId
+      );
+      setSessions(validSessions);
+    }
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
+    console.error('Ошибка загрузки:', err);
+    setError(errorMessage);
+    toast.error(errorMessage);
+  } finally {
+    setLoading(false);
+  }
+}, [id, movie, sessions]);
+
 
   useEffect(() => {
-    console.log('Params:', { id }, 'Location state:', location.state); // Отладка
-    const fetchMovieDetails = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        if (!movie || movie.id.toString() !== id) {
-          const movieResponse = await fetch(`http://localhost:5218/api/cinema/movies/${id}`);
-          if (!movieResponse.ok) {
-            throw new Error('Не удалось загрузить информацию о фильме');
-          }
-          const movieData = await movieResponse.json();
-          setMovie(movieData);
-          console.log('Загружено с API:', movieData);
-        } else {
-          console.log('Использовано состояние:', movie);
-        }
-      } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
-        console.error('Error fetching movie details:', err);
-        setError(errorMessage);
-        toast.error(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    };
-
+    console.log('MovieDetails.tsx mounted with:', { id, locationState: location.state });
     fetchMovieDetails();
-  }, [id, movie]);
+  }, [fetchMovieDetails]);
 
   const handleBookTicket = () => {
-    if (!movie) return;
-
-    navigate(`/booking/${movie.id}`, {
+    if (!movie) {
+      toast.error('Данные о фильме отсутствуют');
+      return;
+    }
+    navigate('/schedule', {
       state: {
-        movie,
-        bookingType: 'full',
-      },
-    });
-  };
-
-  const handleSessionClick = (session: SessionData) => {
-    if (!movie) return;
-
-    navigate(`/booking/${session.id}`, {
-      state: {
-        movie,
-        bookingType: 'quick',
-        sessionData: session,
+        selectedMovieId: movie.id,
       },
     });
   };
@@ -129,25 +142,18 @@ const MovieDetails: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-black to-black/20"></div>
         </div>
       )}
-
       <div className="relative z-10 mx-auto px-4 md:px-8 lg:px-16 py-12">
         <div className="w-full max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row gap-8 mb-8 items-start">
             <div className="w-full md:w-1/4">
               <div className="relative aspect-[2/3] rounded-lg overflow-hidden shadow-2xl mt-4">
-                <img
-                  src={movie.imageUrl}
-                  alt={movie.title}
-                  className="w-full h-full object-cover"
-                />
+                <img src={movie.imageUrl} alt={movie.title} className="w-full h-full object-cover" />
               </div>
             </div>
-
             <div className="w-full md:w-3/4 flex flex-col">
               <h1 className="text-3xl lg:text-4xl font-bold text-white uppercase mb-4 tracking-tight mt-4">
                 {movie.title}
               </h1>
-
               <div className="flex flex-wrap gap-3 mb-4">
                 {movie.genre.split(',').map((g, i) => (
                   <span
@@ -163,13 +169,11 @@ const MovieDetails: React.FC = () => {
                   </span>
                 )}
               </div>
-
               {movie.description && (
                 <p className="text-gray-300 text-base lg:text-lg leading-relaxed mb-4 max-w-3xl">
                   {movie.description}
                 </p>
               )}
-
               {location.state?.fromSchedule && sessions.length > 0 ? (
                 <div className="mt-4">
                   <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
@@ -188,7 +192,6 @@ const MovieDetails: React.FC = () => {
               )}
             </div>
           </div>
-
           {movie.trailerUrl && (
             <div className="w-full mb-12 mt-10">
               <h2 className="text-2xl lg:text-3xl font-bold text-white uppercase mb-6 tracking-wider">
