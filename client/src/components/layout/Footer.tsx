@@ -3,21 +3,62 @@ import { Link } from "react-router-dom";
 
 const Footer: React.FC = () => {
   return (
-    <footer className="w-full bg-black/80 text-white py-6 mt-auto border-t border-white/10">
-      <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-2 text-center">
-        <div className="text-lg font-bold tracking-wide" style={{ fontFamily: "'Racing Sans One', cursive" }}>
-          CINEMA
+    <footer className="w-full bg-gradient-to-b from-gray-900 to-black text-white py-8 mt-auto">
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {/* Логотип и описание */}
+          <div className="col-span-2 md:col-span-1">
+            <div className="text-xl font-bold tracking-wide mb-2" style={{ fontFamily: "'Racing Sans One', cursive" }}>
+              CINEMA
+            </div>
+            <p className="text-gray-400 text-xs">
+              Данные о киносеансах и бронировании. Автоматическая система отслеживает статистику просмотров.
+            </p>
+          </div>
+
+          {/* Полезные ссылки */}
+          <div>
+            <h3 className="text-sm font-semibold mb-2">ПОЛЕЗНЫЕ ССЫЛКИ</h3>
+            <ul className="space-y-1 text-xs">
+              <li><Link to="/" className="text-gray-400 hover:text-cinema-accent transition">Главная</Link></li>
+              <li><Link to="/movies" className="text-gray-400 hover:text-cinema-accent transition">Фильмы</Link></li>
+              <li><Link to="/my-list" className="text-gray-400 hover:text-cinema-accent transition">Мой список</Link></li>
+              <li><Link to="/terms" className="text-gray-400 hover:text-cinema-accent transition">Условия использования</Link></li>
+              <li><Link to="/privacy" className="text-gray-400 hover:text-cinema-accent transition">Политика конфиденциальности</Link></li>
+            </ul>
+          </div>
+
+          {/* Наши каналы */}
+          <div>
+            <h3 className="text-sm font-semibold mb-2">НАШИ КАНАЛЫ</h3>
+            <ul className="space-y-1 text-xs">
+              <li><a href="#" className="text-gray-400 hover:text-cinema-accent transition">Deloitte Optio</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-cinema-accent transition">Non MM Menu</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-cinema-accent transition">Cost Formation NDAA</a></li>
+            </ul>
+          </div>
+
+          {/* Контакты */}
+          <div>
+            <h3 className="text-sm font-semibold mb-2">КОНТАКТЫ</h3>
+            <address className="text-gray-400 not-italic space-y-1 text-xs">
+              <p>ул. Домашняя</p>
+              <p>Город, Магазин 123456</p>
+              <p>Австралия</p>
+              <p>+1 2345 6789 00</p>
+              <p>info@example.com</p>
+            </address>
+          </div>
         </div>
-        <div className="flex flex-col md:flex-row gap-2 md:gap-6 items-center justify-center">
-          <Link to="/about" className="text-cinema-accent hover:underline text-sm">О нас</Link>
-          <Link to="/privacy" className="text-cinema-accent hover:underline text-sm">Политика конфиденциальности</Link>
-          <Link to="/terms" className="text-cinema-accent hover:underline text-sm">Политика использования</Link>
-          <Link to="/contacts" className="text-cinema-accent hover:underline text-sm">Контакты</Link>
+
+        {/* Копирайт */}
+        <div className="border-t border-gray-800 mt-6 pt-4 text-center text-gray-500 text-xs">
+          <p>© Copyright <strong className="text-white">Cinema Technology</strong>. Все права защищены</p>
+          <p className="mt-1">Обозначение климата: Повышение</p>
         </div>
-        <div className="text-sm text-gray-400">© {new Date().getFullYear()} Все права защищены</div>
       </div>
     </footer>
   );
 };
 
-export default Footer; 
+export default Footer;

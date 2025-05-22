@@ -58,50 +58,80 @@ namespace CinemaProject.Controllers
             if (movie == null) return NotFound("Фильм не найден");
             return Ok(movie);
         }
+[HttpPost("bookings")]
+[Authorize]
+public async Task<IActionResult> CreateBooking([FromBody] BookingRequest request)
+{
+    var schedule = await _context.Schedules
+        .Include(s => s.Hall)
+        .ThenInclude(h => h.Zones)
+        .Include(s => s.Movie)
+        .FirstOrDefaultAsync(s => s.Id == request.ScheduleId);
+    if (schedule == null) return NotFound("Сеанс не найден");
 
-        [HttpPost("bookings")]
-        [Authorize]
-        public async Task<IActionResult> CreateBooking([FromBody] BookingRequest request)
+    var zone = schedule.Hall.Zones.FirstOrDefault(z => z.Id == request.ZoneId);
+    if (zone == null) return NotFound("Зона не найдена");
+
+    var ticketType = await _context.TicketTypes.FindAsync(request.TicketTypeId);
+    if (ticketType == null) return NotFound("Тип билета не найден");
+
+    var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+    var seatParts = request.SeatId.Split('-');
+    if (seatParts.Length != 2 || !int.TryParse(seatParts[0], out int seatRow) || !int.TryParse(seatParts[1], out int seatNumber))
+    {
+        return BadRequest("Неверный формат SeatId");
+    }
+
+    // Определяем timeSlotMultiplier
+    var timeSlotModifier = await _context.PriceModifiers
+        .FirstOrDefaultAsync(pm => pm.Type == "time_slot");
+    var timeSlotMultiplier = 1.0m;
+    if (timeSlotModifier != null)
+    {
+        var condition = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(timeSlotModifier.Condition);
+        var startTime = TimeSpan.Parse(condition["start_time"]);
+        var endTime = TimeSpan.Parse(condition["end_time"]);
+        if (schedule.Time >= startTime && schedule.Time <= endTime)
         {
-            var schedule = await _context.Schedules
-                .Include(s => s.Hall)
-                .ThenInclude(h => h.Zones)
-                .FirstOrDefaultAsync(s => s.Id == request.ScheduleId);
-            if (schedule == null) return NotFound("Сеанс не найден");
-
-            var zone = schedule.Hall.Zones.FirstOrDefault(z => z.Id == request.ZoneId);
-            if (zone == null) return NotFound("Зона не найдена");
-
-            var ticketType = await _context.TicketTypes.FindAsync(request.TicketTypeId);
-            if (ticketType == null) return NotFound("Тип билета не найден");
-
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId)) return Unauthorized();
-
-            var seatParts = request.SeatId.Split('-');
-            if (seatParts.Length != 2 || !int.TryParse(seatParts[0], out int seatRow) || !int.TryParse(seatParts[1], out int seatNumber))
-            {
-                return BadRequest("Неверный формат SeatId");
-            }
-
-            var booking = new Booking
-            {
-                UserId = userId,
-                ScheduleId = request.ScheduleId,
-                ZoneId = request.ZoneId,
-                TicketTypeId = request.TicketTypeId,
-                SeatId = request.SeatId,
-                BookingTime = DateTime.UtcNow,
-                Status = "Confirmed",
-                SeatRow = seatRow,
-                SeatNumber = seatNumber,
-                FinalPrice = zone.BasePrice * ticketType.Multiplier // Предполагаем, что Multiplier — decimal
-            };
-
-            _context.Bookings.Add(booking);
-            await _context.SaveChangesAsync();
-            return Ok("Бронирование успешно");
+            timeSlotMultiplier = (decimal)timeSlotModifier.Multiplier;
         }
+    }
+
+    // Определяем popularityMultiplier
+    var popularityScore = schedule.Movie?.PopularityScore ?? 0.5f;
+    var popularityModifier = await _context.PriceModifiers
+        .FirstOrDefaultAsync(pm => pm.Type == "popularity");
+    var popularityMultiplier = 1.0m;
+    if (popularityModifier != null)
+    {
+        var condition = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, float>>(popularityModifier.Condition);
+        var minScore = condition["min_score"];
+        if (popularityScore >= minScore)
+        {
+            popularityMultiplier = (decimal)popularityModifier.Multiplier;
+        }
+    }
+
+    var booking = new Booking
+    {
+        UserId = userId,
+        ScheduleId = request.ScheduleId,
+        ZoneId = request.ZoneId,
+        TicketTypeId = request.TicketTypeId,
+        SeatId = request.SeatId,
+        BookingTime = DateTime.UtcNow,
+        Status = "Confirmed",
+        SeatRow = seatRow,
+        SeatNumber = seatNumber,
+        FinalPrice = zone.BasePrice * ticketType.Multiplier * popularityMultiplier * timeSlotMultiplier
+    };
+
+    _context.Bookings.Add(booking);
+    await _context.SaveChangesAsync();
+    return Ok("Бронирование успешно");
+}
 
         [HttpGet("halls/{id}/rows")]
         [AllowAnonymous]
@@ -114,54 +144,91 @@ namespace CinemaProject.Controllers
             return Ok(rows);
         }
 
-        [HttpGet("bookings/seats/{sessionId}")]
-        [AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<SeatInfoApi>>> GetSeatsForSession(int sessionId)
+       [HttpGet("bookings/seats/{sessionId}")]
+[AllowAnonymous]
+public async Task<ActionResult<IEnumerable<SeatInfoApi>>> GetSeatsForSession(int sessionId)
+{
+    var schedule = await _context.Schedules
+        .Include(s => s.Hall)
+        .ThenInclude(h => h.Zones)
+        .Include(s => s.Movie)
+        .FirstOrDefaultAsync(s => s.Id == sessionId);
+    if (schedule == null)
+    {
+        Console.WriteLine($"No schedule found for SessionId: {sessionId}");
+        return NotFound("Сеанс не найден");
+    }
+
+    var bookings = await _context.Bookings
+        .Where(b => b.ScheduleId == sessionId)
+        .ToListAsync();
+
+    var ticketTypes = await _context.TicketTypes.ToListAsync();
+    var standardTicket = ticketTypes.FirstOrDefault(t => t.Name.ToLower() == "стандартный") ?? ticketTypes.First();
+
+    // Определяем timeSlotMultiplier
+    var timeSlotModifier = await _context.PriceModifiers
+        .FirstOrDefaultAsync(pm => pm.Type == "time_slot");
+    var timeSlotMultiplier = 1.0m;
+    if (timeSlotModifier != null)
+    {
+        var condition = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(timeSlotModifier.Condition);
+        var startTime = TimeSpan.Parse(condition["start_time"]);
+        var endTime = TimeSpan.Parse(condition["end_time"]);
+        if (schedule.Time >= startTime && schedule.Time <= endTime)
         {
-            var schedule = await _context.Schedules
-                .Include(s => s.Hall)
-                .ThenInclude(h => h.Zones)
-                .FirstOrDefaultAsync(s => s.Id == sessionId);
-            if (schedule == null) return NotFound("Сеанс не найден");
-
-            var bookings = await _context.Bookings
-                .Where(b => b.ScheduleId == sessionId)
-                .ToListAsync();
-
-            var ticketTypes = await _context.TicketTypes.ToListAsync();
-            var standardTicket = ticketTypes.FirstOrDefault(t => t.Name.ToLower() == "стандартный") ?? ticketTypes.First();
-
-            var seats = new List<SeatInfoApi>();
-            foreach (var zone in schedule.Hall.Zones)
-            {
-                var rows = await _context.Rows
-                    .Where(r => r.HallId == schedule.HallId)
-                    .ToListAsync();
-
-                foreach (var row in rows)
-                {
-                    for (int seatNum = 1; seatNum <= row.Seats; seatNum++)
-                    {
-                        var seatId = $"{row.Number}-{seatNum}";
-                        var isTaken = bookings.Any(b => b.SeatId == seatId);
-                        seats.Add(new SeatInfoApi
-                        {
-                            SeatId = seatId,
-                            IsTaken = isTaken,
-                            ZoneId = zone.Id,
-                            ZoneName = zone.Name,
-                            SeatType = row.Type,
-                            BasePrice = zone.BasePrice,
-                            PopularityPrice = zone.BasePrice * 1.3m, // Исправлено на decimal
-                            TimeSlotPrice = zone.BasePrice * 1.2m,  // Исправлено на decimal
-                            FinalPrice = zone.BasePrice * standardTicket.Multiplier // Стандартный билет
-                        });
-                    }
-                }
-            }
-
-            return Ok(seats);
+            timeSlotMultiplier = (decimal)timeSlotModifier.Multiplier; // 1.2 для 18:00–22:00
         }
+    }
+
+    // Определяем popularityMultiplier
+    var popularityScore = schedule.Movie?.PopularityScore ?? 0.5f;
+    var popularityModifier = await _context.PriceModifiers
+        .FirstOrDefaultAsync(pm => pm.Type == "popularity");
+    var popularityMultiplier = 1.0m;
+    if (popularityModifier != null)
+    {
+        var condition = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, float>>(popularityModifier.Condition);
+        var minScore = condition["min_score"];
+        if (popularityScore >= minScore)
+        {
+            popularityMultiplier = (decimal)popularityModifier.Multiplier; // 1.3 для score >= 0.8
+        }
+    }
+
+    var seats = new List<SeatInfoApi>();
+    foreach (var zone in schedule.Hall.Zones)
+    {
+        var rows = await _context.Rows
+            .Where(r => r.HallId == schedule.HallId && r.ZoneId == zone.Id)
+            .ToListAsync();
+
+        foreach (var row in rows)
+        {
+            for (int seatNum = 1; seatNum <= row.Seats; seatNum++)
+            {
+                var seatId = $"{row.Number}-{seatNum}";
+                var isTaken = bookings.Any(b => b.SeatId == seatId);
+                var finalPrice = zone.BasePrice * standardTicket.Multiplier * popularityMultiplier * timeSlotMultiplier;
+                seats.Add(new SeatInfoApi
+                {
+                    SeatId = seatId,
+                    IsTaken = isTaken,
+                    ZoneId = zone.Id,
+                    ZoneName = zone.Name,
+                    SeatType = row.Type,
+                    BasePrice = zone.BasePrice,
+                    PopularityPrice = zone.BasePrice * popularityMultiplier,
+                    TimeSlotPrice = zone.BasePrice * timeSlotMultiplier,
+                    FinalPrice = finalPrice
+                });
+            }
+        }
+    }
+
+    Console.WriteLine($"SessionId: {sessionId}, Time: {schedule.Time}, PopularityScore: {popularityScore}, TimeSlotMultiplier: {timeSlotMultiplier}, Seats: {seats.Count}");
+    return Ok(seats);
+}
     }
 
     public class BookingRequest

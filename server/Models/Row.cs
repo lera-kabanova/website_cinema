@@ -8,6 +8,7 @@ namespace CinemaProject.Models
         public int Seats { get; set; }
         public string Type { get; set; } // standard, sofa, loveSeat, recliner
         public string Spacing { get; set; } // normal, wide, extraWide
+        public int ZoneId { get; set; }
         public Hall Hall { get; set; }
     }
 }

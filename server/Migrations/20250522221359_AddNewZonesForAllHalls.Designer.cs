@@ -3,6 +3,7 @@ using System;
 using CinemaProject.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace cinema_mng_backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250522221359_AddNewZonesForAllHalls")]
+    partial class AddNewZonesForAllHalls
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.5");
@@ -184,7 +187,7 @@ namespace cinema_mng_backend.Migrations
                         new
                         {
                             Id = 1,
-                            Condition = "{\"start_time\": \"18:00:00\", \"end_time\": \"22:00:00\"}",
+                            Condition = "{\"start_time\": \"18:00\", \"end_time\": \"22:00\"}",
                             Multiplier = 1.2f,
                             Type = "time_slot"
                         },
@@ -238,7 +241,7 @@ namespace cinema_mng_backend.Migrations
                             Seats = 5,
                             Spacing = "extraWide",
                             Type = "sofa",
-                            ZoneId = 7
+                            ZoneId = 0
                         },
                         new
                         {
@@ -248,7 +251,7 @@ namespace cinema_mng_backend.Migrations
                             Seats = 10,
                             Spacing = "normal",
                             Type = "standard",
-                            ZoneId = 1
+                            ZoneId = 0
                         },
                         new
                         {
@@ -258,7 +261,7 @@ namespace cinema_mng_backend.Migrations
                             Seats = 10,
                             Spacing = "normal",
                             Type = "standard",
-                            ZoneId = 1
+                            ZoneId = 0
                         },
                         new
                         {
@@ -268,7 +271,7 @@ namespace cinema_mng_backend.Migrations
                             Seats = 10,
                             Spacing = "normal",
                             Type = "standard",
-                            ZoneId = 1
+                            ZoneId = 0
                         },
                         new
                         {
@@ -278,7 +281,7 @@ namespace cinema_mng_backend.Migrations
                             Seats = 10,
                             Spacing = "normal",
                             Type = "standard",
-                            ZoneId = 1
+                            ZoneId = 0
                         },
                         new
                         {
@@ -288,7 +291,7 @@ namespace cinema_mng_backend.Migrations
                             Seats = 10,
                             Spacing = "normal",
                             Type = "standard",
-                            ZoneId = 1
+                            ZoneId = 0
                         },
                         new
                         {
@@ -298,7 +301,7 @@ namespace cinema_mng_backend.Migrations
                             Seats = 10,
                             Spacing = "normal",
                             Type = "standard",
-                            ZoneId = 1
+                            ZoneId = 0
                         },
                         new
                         {
@@ -308,7 +311,7 @@ namespace cinema_mng_backend.Migrations
                             Seats = 10,
                             Spacing = "normal",
                             Type = "standard",
-                            ZoneId = 1
+                            ZoneId = 0
                         },
                         new
                         {
@@ -318,7 +321,7 @@ namespace cinema_mng_backend.Migrations
                             Seats = 8,
                             Spacing = "wide",
                             Type = "loveSeat",
-                            ZoneId = 8
+                            ZoneId = 0
                         },
                         new
                         {
@@ -328,7 +331,7 @@ namespace cinema_mng_backend.Migrations
                             Seats = 5,
                             Spacing = "extraWide",
                             Type = "sofa",
-                            ZoneId = 3
+                            ZoneId = 0
                         },
                         new
                         {
@@ -338,7 +341,7 @@ namespace cinema_mng_backend.Migrations
                             Seats = 10,
                             Spacing = "normal",
                             Type = "standard",
-                            ZoneId = 10
+                            ZoneId = 0
                         },
                         new
                         {
@@ -348,7 +351,7 @@ namespace cinema_mng_backend.Migrations
                             Seats = 10,
                             Spacing = "normal",
                             Type = "standard",
-                            ZoneId = 10
+                            ZoneId = 0
                         },
                         new
                         {
@@ -358,7 +361,7 @@ namespace cinema_mng_backend.Migrations
                             Seats = 10,
                             Spacing = "normal",
                             Type = "standard",
-                            ZoneId = 10
+                            ZoneId = 0
                         },
                         new
                         {
@@ -368,7 +371,7 @@ namespace cinema_mng_backend.Migrations
                             Seats = 10,
                             Spacing = "normal",
                             Type = "standard",
-                            ZoneId = 10
+                            ZoneId = 0
                         },
                         new
                         {
@@ -378,7 +381,7 @@ namespace cinema_mng_backend.Migrations
                             Seats = 10,
                             Spacing = "normal",
                             Type = "standard",
-                            ZoneId = 10
+                            ZoneId = 0
                         },
                         new
                         {
@@ -388,7 +391,7 @@ namespace cinema_mng_backend.Migrations
                             Seats = 10,
                             Spacing = "normal",
                             Type = "standard",
-                            ZoneId = 10
+                            ZoneId = 0
                         },
                         new
                         {
@@ -398,7 +401,7 @@ namespace cinema_mng_backend.Migrations
                             Seats = 10,
                             Spacing = "normal",
                             Type = "standard",
-                            ZoneId = 10
+                            ZoneId = 0
                         },
                         new
                         {
@@ -408,7 +411,7 @@ namespace cinema_mng_backend.Migrations
                             Seats = 8,
                             Spacing = "wide",
                             Type = "loveSeat",
-                            ZoneId = 4
+                            ZoneId = 0
                         },
                         new
                         {
@@ -418,7 +421,7 @@ namespace cinema_mng_backend.Migrations
                             Seats = 6,
                             Spacing = "wide",
                             Type = "recliner",
-                            ZoneId = 9
+                            ZoneId = 0
                         },
                         new
                         {
@@ -426,9 +429,9 @@ namespace cinema_mng_backend.Migrations
                             HallId = 3,
                             Number = 1,
                             Seats = 8,
-                            Spacing = "wide",
+                            Spacing = "normal",
                             Type = "loveSeat",
-                            ZoneId = 11
+                            ZoneId = 0
                         },
                         new
                         {
@@ -436,9 +439,9 @@ namespace cinema_mng_backend.Migrations
                             HallId = 3,
                             Number = 2,
                             Seats = 8,
-                            Spacing = "wide",
+                            Spacing = "normal",
                             Type = "loveSeat",
-                            ZoneId = 11
+                            ZoneId = 0
                         },
                         new
                         {
@@ -446,9 +449,9 @@ namespace cinema_mng_backend.Migrations
                             HallId = 3,
                             Number = 3,
                             Seats = 8,
-                            Spacing = "wide",
+                            Spacing = "normal",
                             Type = "recliner",
-                            ZoneId = 6
+                            ZoneId = 0
                         },
                         new
                         {
@@ -456,9 +459,9 @@ namespace cinema_mng_backend.Migrations
                             HallId = 3,
                             Number = 4,
                             Seats = 8,
-                            Spacing = "wide",
+                            Spacing = "normal",
                             Type = "recliner",
-                            ZoneId = 6
+                            ZoneId = 0
                         },
                         new
                         {
@@ -468,7 +471,7 @@ namespace cinema_mng_backend.Migrations
                             Seats = 6,
                             Spacing = "wide",
                             Type = "sofa",
-                            ZoneId = 5
+                            ZoneId = 0
                         },
                         new
                         {
@@ -478,7 +481,7 @@ namespace cinema_mng_backend.Migrations
                             Seats = 6,
                             Spacing = "wide",
                             Type = "sofa",
-                            ZoneId = 5
+                            ZoneId = 0
                         });
                 });
 
@@ -603,6 +606,13 @@ namespace cinema_mng_backend.Migrations
                             BasePrice = 10.00m,
                             HallId = 1,
                             Name = "Стандартное кресло"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            BasePrice = 15.00m,
+                            HallId = 1,
+                            Name = "Реклайнер"
                         },
                         new
                         {
