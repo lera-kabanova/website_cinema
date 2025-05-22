@@ -53,6 +53,7 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
+            
     });
 });
 

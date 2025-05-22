@@ -59,7 +59,7 @@ namespace CinemaProject.Data
                 new Movie
                 {
                     Title = "65",
-                    Duration = 93, // 1ч 33мин
+                    Duration = 93, 
                     Genre = "Триллер",
                     ImageUrl = "/assets/images/65.jpg",
                     AgeRating = "13+",
@@ -72,7 +72,7 @@ namespace CinemaProject.Data
                 new Movie
                 {
                     Title = "Обезьяна против Мехаобезьяны",
-                    Duration = 61, // 1ч 1мин
+                    Duration = 61, 
                     Genre = "Боевик",
                     ImageUrl = "/assets/images/ape.jpg",
                     AgeRating = "13+",
@@ -98,7 +98,7 @@ namespace CinemaProject.Data
                 new Movie
                 {
                     Title = "Мег 2: Бездна",
-                    Duration = 116, // 1ч 56мин
+                    Duration = 116, 
                     Genre = "Боевик",
                     ImageUrl = "/assets/images/meg-2.jpg",
                     AgeRating = "12+",
