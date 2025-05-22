@@ -15,5 +15,6 @@ namespace CinemaProject.Models
         [Required]
         public required string Type { get; set; } // standard, comfort, vip
         public List<Zone> Zones { get; set; } = new List<Zone>();
+        public List<Row> Rows { get; set; } = new List<Row>();
     }
 }

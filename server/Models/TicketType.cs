@@ -10,6 +10,6 @@ namespace CinemaProject.Models
         public required string Name { get; set; } // Стандартный, Студенческий, Пенсионный
 
         [Required]
-        public float Multiplier { get; set; } // Множитель цены, например, 1.0 для стандартного, 0.8 для студенческого
+        public decimal Multiplier { get; set; } // Множитель цены, например, 1.0 для стандартного, 0.8 для студенческого
     }
 }

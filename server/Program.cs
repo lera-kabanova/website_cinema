@@ -2,6 +2,7 @@ using CinemaProject.Data;
 using CinemaProject.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -36,7 +37,11 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Cinema API", Version = "v1" });
+    c.CustomSchemaIds(type => type.FullName); // Уникальные schemaId на основе полного имени типа
+});
 
 builder.Services.AddCors(options =>
 {

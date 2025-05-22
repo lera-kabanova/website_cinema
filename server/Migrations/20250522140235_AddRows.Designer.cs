@@ -3,6 +3,7 @@ using System;
 using CinemaProject.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace cinema_mng_backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250522140235_AddRows")]
+    partial class AddRows
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.5");
@@ -490,8 +493,8 @@ namespace cinema_mng_backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal>("Multiplier")
-                        .HasColumnType("TEXT");
+                    b.Property<float>("Multiplier")
+                        .HasColumnType("REAL");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -506,19 +509,19 @@ namespace cinema_mng_backend.Migrations
                         new
                         {
                             Id = 1,
-                            Multiplier = 1.0m,
+                            Multiplier = 1f,
                             Name = "Стандартный"
                         },
                         new
                         {
                             Id = 2,
-                            Multiplier = 0.8m,
+                            Multiplier = 0.8f,
                             Name = "Студенческий"
                         },
                         new
                         {
                             Id = 3,
-                            Multiplier = 0.7m,
+                            Multiplier = 0.7f,
                             Name = "Пенсионный"
                         });
                 });

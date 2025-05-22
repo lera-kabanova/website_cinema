@@ -5,7 +5,7 @@ namespace CinemaProject.Data
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) {}
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         public DbSet<Movie> Movies { get; set; }
         public DbSet<User> Users { get; set; }
@@ -15,6 +15,7 @@ namespace CinemaProject.Data
         public DbSet<PriceModifier> PriceModifiers { get; set; }
         public DbSet<TicketType> TicketTypes { get; set; }
         public DbSet<Booking> Bookings { get; set; }
+        public DbSet<Row> Rows { get; set; } // Добавлено
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -29,20 +30,29 @@ namespace CinemaProject.Data
                 .HasForeignKey(z => z.HallId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<Hall>()
+                .HasMany(h => h.Rows)
+                .WithOne(r => r.Hall)
+                .HasForeignKey(r => r.HallId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<Booking>()
                 .HasOne(b => b.Schedule)
                 .WithMany()
-                .HasForeignKey(b => b.ScheduleId);
+                .HasForeignKey(b => b.ScheduleId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Booking>()
                 .HasOne(b => b.Zone)
                 .WithMany()
-                .HasForeignKey(b => b.ZoneId);
+                .HasForeignKey(b => b.ZoneId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Booking>()
                 .HasOne(b => b.TicketType)
                 .WithMany()
-                .HasForeignKey(b => b.TicketTypeId);
+                .HasForeignKey(b => b.TicketTypeId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Начальные данные для залов
             modelBuilder.Entity<Hall>().HasData(
@@ -51,7 +61,7 @@ namespace CinemaProject.Data
                 new Hall { Id = 3, Name = "VIP Зал", Capacity = 30, Type = "vip" }
             );
 
-            // Начальные данные для зон (типы мест, цены в BYN)
+            // Начальные данные для зон
             modelBuilder.Entity<Zone>().HasData(
                 new Zone { Id = 1, HallId = 1, Name = "Стандартное кресло", BasePrice = 10.00m },
                 new Zone { Id = 2, HallId = 1, Name = "Реклайнер", BasePrice = 15.00m },
@@ -59,6 +69,38 @@ namespace CinemaProject.Data
                 new Zone { Id = 4, HallId = 2, Name = "LoveSeats", BasePrice = 18.00m },
                 new Zone { Id = 5, HallId = 3, Name = "VIP Диван", BasePrice = 25.00m },
                 new Zone { Id = 6, HallId = 3, Name = "VIP Реклайнер", BasePrice = 30.00m }
+            );
+
+            // Начальные данные для рядов
+            modelBuilder.Entity<Row>().HasData(
+                // Зал 1 (Стандартный)
+                new Row { Id = 1, HallId = 1, Number = 1, Seats = 5, Type = "sofa", Spacing = "extraWide" },
+                new Row { Id = 2, HallId = 1, Number = 2, Seats = 10, Type = "standard", Spacing = "normal" },
+                new Row { Id = 3, HallId = 1, Number = 3, Seats = 10, Type = "standard", Spacing = "normal" },
+                new Row { Id = 4, HallId = 1, Number = 4, Seats = 10, Type = "standard", Spacing = "normal" },
+                new Row { Id = 5, HallId = 1, Number = 5, Seats = 10, Type = "standard", Spacing = "normal" },
+                new Row { Id = 6, HallId = 1, Number = 6, Seats = 10, Type = "standard", Spacing = "normal" },
+                new Row { Id = 7, HallId = 1, Number = 7, Seats = 10, Type = "standard", Spacing = "normal" },
+                new Row { Id = 8, HallId = 1, Number = 8, Seats = 10, Type = "standard", Spacing = "normal" },
+                new Row { Id = 9, HallId = 1, Number = 9, Seats = 8, Type = "loveSeat", Spacing = "wide" },
+                // Зал 2 (Комфортный)
+                new Row { Id = 10, HallId = 2, Number = 1, Seats = 5, Type = "sofa", Spacing = "extraWide" },
+                new Row { Id = 11, HallId = 2, Number = 2, Seats = 10, Type = "standard", Spacing = "normal" },
+                new Row { Id = 12, HallId = 2, Number = 3, Seats = 10, Type = "standard", Spacing = "normal" },
+                new Row { Id = 13, HallId = 2, Number = 4, Seats = 10, Type = "standard", Spacing = "normal" },
+                new Row { Id = 14, HallId = 2, Number = 5, Seats = 10, Type = "standard", Spacing = "normal" },
+                new Row { Id = 15, HallId = 2, Number = 6, Seats = 10, Type = "standard", Spacing = "normal" },
+                new Row { Id = 16, HallId = 2, Number = 7, Seats = 10, Type = "standard", Spacing = "normal" },
+                new Row { Id = 17, HallId = 2, Number = 8, Seats = 10, Type = "standard", Spacing = "normal" },
+                new Row { Id = 18, HallId = 2, Number = 9, Seats = 8, Type = "loveSeat", Spacing = "wide" },
+                new Row { Id = 19, HallId = 2, Number = 10, Seats = 6, Type = "recliner", Spacing = "wide" },
+                // Зал 3 (VIP)
+                new Row { Id = 20, HallId = 3, Number = 1, Seats = 8, Type = "loveSeat", Spacing = "normal" },
+                new Row { Id = 21, HallId = 3, Number = 2, Seats = 8, Type = "loveSeat", Spacing = "normal" },
+                new Row { Id = 22, HallId = 3, Number = 3, Seats = 8, Type = "recliner", Spacing = "normal" },
+                new Row { Id = 23, HallId = 3, Number = 4, Seats = 8, Type = "recliner", Spacing = "normal" },
+                new Row { Id = 24, HallId = 3, Number = 5, Seats = 6, Type = "sofa", Spacing = "wide" },
+                new Row { Id = 25, HallId = 3, Number = 6, Seats = 6, Type = "sofa", Spacing = "wide" }
             );
 
             // Начальные данные для модификаторов цен
@@ -69,9 +111,9 @@ namespace CinemaProject.Data
 
             // Начальные данные для типов билетов
             modelBuilder.Entity<TicketType>().HasData(
-                new TicketType { Id = 1, Name = "Стандартный", Multiplier = 1.0f },
-                new TicketType { Id = 2, Name = "Студенческий", Multiplier = 0.8f },
-                new TicketType { Id = 3, Name = "Пенсионный", Multiplier = 0.7f }
+                new TicketType { Id = 1, Name = "Стандартный", Multiplier = 1.0m },
+                new TicketType { Id = 2, Name = "Студенческий", Multiplier = 0.8m },
+                new TicketType { Id = 3, Name = "Пенсионный", Multiplier = 0.7m }
             );
         }
     }

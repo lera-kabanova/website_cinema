@@ -3,6 +3,7 @@ using System;
 using CinemaProject.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace cinema_mng_backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250521205305_AddBookingStatusAndSeatId")]
+    partial class AddBookingStatusAndSeatId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.5");
@@ -197,263 +200,6 @@ namespace cinema_mng_backend.Migrations
                         });
                 });
 
-            modelBuilder.Entity("CinemaProject.Models.Row", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("HallId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Number")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Seats")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Spacing")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("HallId");
-
-                    b.ToTable("Rows");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            HallId = 1,
-                            Number = 1,
-                            Seats = 5,
-                            Spacing = "extraWide",
-                            Type = "sofa"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            HallId = 1,
-                            Number = 2,
-                            Seats = 10,
-                            Spacing = "normal",
-                            Type = "standard"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            HallId = 1,
-                            Number = 3,
-                            Seats = 10,
-                            Spacing = "normal",
-                            Type = "standard"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            HallId = 1,
-                            Number = 4,
-                            Seats = 10,
-                            Spacing = "normal",
-                            Type = "standard"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            HallId = 1,
-                            Number = 5,
-                            Seats = 10,
-                            Spacing = "normal",
-                            Type = "standard"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            HallId = 1,
-                            Number = 6,
-                            Seats = 10,
-                            Spacing = "normal",
-                            Type = "standard"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            HallId = 1,
-                            Number = 7,
-                            Seats = 10,
-                            Spacing = "normal",
-                            Type = "standard"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            HallId = 1,
-                            Number = 8,
-                            Seats = 10,
-                            Spacing = "normal",
-                            Type = "standard"
-                        },
-                        new
-                        {
-                            Id = 9,
-                            HallId = 1,
-                            Number = 9,
-                            Seats = 8,
-                            Spacing = "wide",
-                            Type = "loveSeat"
-                        },
-                        new
-                        {
-                            Id = 10,
-                            HallId = 2,
-                            Number = 1,
-                            Seats = 5,
-                            Spacing = "extraWide",
-                            Type = "sofa"
-                        },
-                        new
-                        {
-                            Id = 11,
-                            HallId = 2,
-                            Number = 2,
-                            Seats = 10,
-                            Spacing = "normal",
-                            Type = "standard"
-                        },
-                        new
-                        {
-                            Id = 12,
-                            HallId = 2,
-                            Number = 3,
-                            Seats = 10,
-                            Spacing = "normal",
-                            Type = "standard"
-                        },
-                        new
-                        {
-                            Id = 13,
-                            HallId = 2,
-                            Number = 4,
-                            Seats = 10,
-                            Spacing = "normal",
-                            Type = "standard"
-                        },
-                        new
-                        {
-                            Id = 14,
-                            HallId = 2,
-                            Number = 5,
-                            Seats = 10,
-                            Spacing = "normal",
-                            Type = "standard"
-                        },
-                        new
-                        {
-                            Id = 15,
-                            HallId = 2,
-                            Number = 6,
-                            Seats = 10,
-                            Spacing = "normal",
-                            Type = "standard"
-                        },
-                        new
-                        {
-                            Id = 16,
-                            HallId = 2,
-                            Number = 7,
-                            Seats = 10,
-                            Spacing = "normal",
-                            Type = "standard"
-                        },
-                        new
-                        {
-                            Id = 17,
-                            HallId = 2,
-                            Number = 8,
-                            Seats = 10,
-                            Spacing = "normal",
-                            Type = "standard"
-                        },
-                        new
-                        {
-                            Id = 18,
-                            HallId = 2,
-                            Number = 9,
-                            Seats = 8,
-                            Spacing = "wide",
-                            Type = "loveSeat"
-                        },
-                        new
-                        {
-                            Id = 19,
-                            HallId = 2,
-                            Number = 10,
-                            Seats = 6,
-                            Spacing = "wide",
-                            Type = "recliner"
-                        },
-                        new
-                        {
-                            Id = 20,
-                            HallId = 3,
-                            Number = 1,
-                            Seats = 8,
-                            Spacing = "normal",
-                            Type = "loveSeat"
-                        },
-                        new
-                        {
-                            Id = 21,
-                            HallId = 3,
-                            Number = 2,
-                            Seats = 8,
-                            Spacing = "normal",
-                            Type = "loveSeat"
-                        },
-                        new
-                        {
-                            Id = 22,
-                            HallId = 3,
-                            Number = 3,
-                            Seats = 8,
-                            Spacing = "normal",
-                            Type = "recliner"
-                        },
-                        new
-                        {
-                            Id = 23,
-                            HallId = 3,
-                            Number = 4,
-                            Seats = 8,
-                            Spacing = "normal",
-                            Type = "recliner"
-                        },
-                        new
-                        {
-                            Id = 24,
-                            HallId = 3,
-                            Number = 5,
-                            Seats = 6,
-                            Spacing = "wide",
-                            Type = "sofa"
-                        },
-                        new
-                        {
-                            Id = 25,
-                            HallId = 3,
-                            Number = 6,
-                            Seats = 6,
-                            Spacing = "wide",
-                            Type = "sofa"
-                        });
-                });
-
             modelBuilder.Entity("CinemaProject.Models.Schedule", b =>
                 {
                     b.Property<int>("Id")
@@ -490,8 +236,8 @@ namespace cinema_mng_backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal>("Multiplier")
-                        .HasColumnType("TEXT");
+                    b.Property<float>("Multiplier")
+                        .HasColumnType("REAL");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -506,19 +252,19 @@ namespace cinema_mng_backend.Migrations
                         new
                         {
                             Id = 1,
-                            Multiplier = 1.0m,
+                            Multiplier = 1f,
                             Name = "Стандартный"
                         },
                         new
                         {
                             Id = 2,
-                            Multiplier = 0.8m,
+                            Multiplier = 0.8f,
                             Name = "Студенческий"
                         },
                         new
                         {
                             Id = 3,
-                            Multiplier = 0.7m,
+                            Multiplier = 0.7f,
                             Name = "Пенсионный"
                         });
                 });
@@ -640,17 +386,6 @@ namespace cinema_mng_backend.Migrations
                     b.Navigation("Zone");
                 });
 
-            modelBuilder.Entity("CinemaProject.Models.Row", b =>
-                {
-                    b.HasOne("CinemaProject.Models.Hall", "Hall")
-                        .WithMany("Rows")
-                        .HasForeignKey("HallId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Hall");
-                });
-
             modelBuilder.Entity("CinemaProject.Models.Schedule", b =>
                 {
                     b.HasOne("CinemaProject.Models.Hall", "Hall")
@@ -683,8 +418,6 @@ namespace cinema_mng_backend.Migrations
 
             modelBuilder.Entity("CinemaProject.Models.Hall", b =>
                 {
-                    b.Navigation("Rows");
-
                     b.Navigation("Zones");
                 });
 #pragma warning restore 612, 618
