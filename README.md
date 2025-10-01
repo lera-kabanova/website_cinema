@@ -18,8 +18,9 @@
 
 ### Залы
 ![Выбор мест](screenshots/halls.jpg)
+</div>
 
-## ✨ Функциональность
+## Функциональность
 
 - Просмотр афиши фильмов
 - Ознакомление с описанием фильмов и видеотрейлерами
@@ -29,7 +30,7 @@
 - Бронирование билетов с указанием типа билета и места
 - Регистрация и авторизация пользователей
 
-## 🛠 Технологии
+## Технологии
 
 ### Frontend
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
@@ -41,7 +42,7 @@
 ![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white)
 ![.NET](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
 
-## 🚀 Установка и запуск
+## Установка и запуск
 
 ### 1. Клонирование репозитория
 ```bash
@@ -57,6 +58,7 @@ cd client
 npm install
 # Запустить приложение
 npm start
+
 
 
 
