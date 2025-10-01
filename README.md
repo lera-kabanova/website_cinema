@@ -11,10 +11,11 @@
 • бронирование билетов с указанием типа билета и места;
 • регистрация и авторизация пользователей.
 
-Запуск
-git clone https://github.com/lera-kabanova/website_cinema.git
-cd cinema-website
-cd client
-npm install
-npm start
+Запуск:
+1. git clone https://github.com/lera-kabanova/website_cinema.git;
+2. cd cinema-website;
+3. cd client;
+4. npm install;
+5. npm start;
+
 
