@@ -58,11 +58,3 @@ cd client
 npm install
 # Запустить приложение
 npm start
-
-
-
-
-
-
-
-
