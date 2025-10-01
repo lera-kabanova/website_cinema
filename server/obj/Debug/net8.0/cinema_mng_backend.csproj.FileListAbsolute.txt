@@ -324,11 +324,6 @@ D:\Cinema_website\server\obj\Debug\net8.0\cinema_mng_backend.MvcApplicationParts
 D:\Cinema_website\server\obj\Debug\net8.0\cinema_mng_backend.MvcApplicationPartsAssemblyInfo.cache
 D:\Cinema_website\server\obj\Debug\net8.0\staticwebassets.build.json
 D:\Cinema_website\server\obj\Debug\net8.0\staticwebassets.development.json
-D:\Cinema_website\server\obj\Debug\net8.0\staticwebassets\msbuild.cinema_mng_backend.Microsoft.AspNetCore.StaticWebAssets.props
-D:\Cinema_website\server\obj\Debug\net8.0\staticwebassets\msbuild.build.cinema_mng_backend.props
-D:\Cinema_website\server\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.cinema_mng_backend.props
-D:\Cinema_website\server\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.cinema_mng_backend.props
-D:\Cinema_website\server\obj\Debug\net8.0\staticwebassets.pack.json
 D:\Cinema_website\server\obj\Debug\net8.0\scopedcss\bundle\cinema_mng_backend.styles.css
 D:\Cinema_website\server\obj\Debug\net8.0\cinema_m.21CC7070.Up2Date
 D:\Cinema_website\server\obj\Debug\net8.0\cinema_mng_backend.dll
@@ -520,3 +515,6 @@ D:\Cinema_Website\server\bin\Debug\net8.0\MailKit.dll
 D:\Cinema_Website\server\bin\Debug\net8.0\MimeKit.dll
 D:\Cinema_Website\server\bin\Debug\net8.0\System.Security.Cryptography.Pkcs.dll
 D:\Cinema_Website\server\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Security.Cryptography.Pkcs.dll
+D:\Cinema_Website\server\bin\Debug\net8.0\cinema_mng_backend.staticwebassets.endpoints.json
+D:\Cinema_Website\server\obj\Debug\net8.0\staticwebassets.build.json.cache
+D:\Cinema_Website\server\obj\Debug\net8.0\staticwebassets.build.endpoints.json
