@@ -8,7 +8,7 @@ namespace CinemaProject.Models
         public int Id { get; set; }
 
         [Required]
-        public string UserId { get; set; }
+        public int UserId { get; set; }
 
         [Required]
         public int ScheduleId { get; set; }
@@ -35,5 +35,6 @@ namespace CinemaProject.Models
         public Schedule Schedule { get; set; } // Навигационное свойство
         public Zone Zone { get; set; } // Навигационное свойство
         public TicketType TicketType { get; set; } // Навигационное свойство
+        public User User { get; set; } // Навигационное свойство
     }
 }

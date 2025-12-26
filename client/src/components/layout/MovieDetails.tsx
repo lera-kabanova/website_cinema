@@ -28,6 +28,12 @@ interface SessionData {
   hallId: number;
 }
 
+type LocationState = {
+  movie?: Movie;
+  scheduleData?: SessionData[];
+  source?: "tmdb";
+};
+
 const hallDescriptions: Record<string, string> = {
   'Зал 1 (Стандартный)': 'Стандартный зал',
   'Зал 2 (Комфортный)': 'Комфортный зал',
@@ -38,12 +44,21 @@ const MovieDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
-  const [movie, setMovie] = useState<Movie | null>(location.state?.movie || null);
-  const [sessions, setSessions] = useState<SessionData[]>(location.state?.scheduleData || []);
+  const locationState = location.state as LocationState | null;
+  const isTmdbSource = locationState?.source === "tmdb";
+
+  const [movie, setMovie] = useState<Movie | null>(locationState?.movie || null);
+  const [sessions, setSessions] = useState<SessionData[]>(locationState?.scheduleData || []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchMovieDetails = useCallback(async () => {
+  // Если пришли из TMDb и уже есть данные — просто показываем их
+  if (isTmdbSource && movie) {
+    setLoading(false);
+    return;
+  }
+
   // Если всё уже загружено из location.state — ничего не делаем
   if (movie && sessions.length > 0) {
     setLoading(false);
@@ -60,7 +75,7 @@ const MovieDetails: React.FC = () => {
 
     // Загружаем фильм, если его нет или ID отличается
     if (!movie || movie.id.toString() !== id) {
-      const movieResponse = await fetch(`http://localhost:5218/api/cinema/movies/${id}`);
+      const movieResponse = await fetch(`/api/cinema/movies/${id}`);
       if (!movieResponse.ok) {
         throw new Error(`Не удалось загрузить информацию о фильме: ${movieResponse.status}`);
       }
@@ -70,7 +85,7 @@ const MovieDetails: React.FC = () => {
 
     // Загружаем сеансы, если их нет
     if (sessions.length === 0) {
-      const sessionResponse = await fetch(`http://localhost:5218/api/cinema/schedules?movieId=${id}`);
+      const sessionResponse = await fetch(`/api/cinema/schedules?movieId=${id}`);
       if (!sessionResponse.ok) {
         throw new Error('Не удалось загрузить сеансы');
       }
@@ -88,7 +103,7 @@ const MovieDetails: React.FC = () => {
   } finally {
     setLoading(false);
   }
-}, [id, movie, sessions]);
+}, [id, isTmdbSource, movie, sessions]);
 
 
   useEffect(() => {
@@ -97,6 +112,11 @@ const MovieDetails: React.FC = () => {
   }, [fetchMovieDetails]);
 
   const handleBookTicket = () => {
+    if (isTmdbSource) {
+      toast.info('Расписание для этого фильма появится позже');
+      return;
+    }
+
     if (!movie) {
       toast.error('Данные о фильме отсутствуют');
       return;
@@ -174,7 +194,7 @@ const MovieDetails: React.FC = () => {
                   {movie.description}
                 </p>
               )}
-              {location.state?.fromSchedule && sessions.length > 0 ? (
+              {location.state?.fromSchedule && sessions.length > 0 && !isTmdbSource ? (
                 <div className="mt-4">
                   <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
                     <Clock size={20} className="text-cinema-accent" />
@@ -183,12 +203,15 @@ const MovieDetails: React.FC = () => {
                   <MovieSessions sessions={sessions} movie={movie} />
                 </div>
               ) : (
-                <button
-                  onClick={handleBookTicket}
-                  className="self-start px-8 py-3 bg-cinema-accent text-white rounded-full text-base font-bold hover:bg-cinema-mouse transition hover:scale-105 mt-6"
-                >
-                  Купить билет
-                </button>
+                <div className="mt-6">
+                  <button
+                    onClick={handleBookTicket}
+                    className="self-start px-8 py-3 bg-cinema-accent text-white rounded-full text-base font-bold hover:bg-cinema-mouse transition hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed"
+                    disabled={isTmdbSource}
+                  >
+                    {isTmdbSource ? 'Расписание появится позже' : 'Купить билет'}
+                  </button>
+                </div>
               )}
             </div>
           </div>

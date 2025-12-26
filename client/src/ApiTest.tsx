@@ -14,7 +14,7 @@ const ApiTest: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    axios.get<WeatherForecast[]>('http://localhost:5218/api/WeatherForecast')
+    axios.get<WeatherForecast[]>('/api/WeatherForecast')
       .then(response => {
         setData(response.data);
         setLoading(false);

@@ -57,7 +57,7 @@ const Schedule: React.FC = () => {
   useEffect(() => {
     const fetchSchedules = async () => {
       try {
-        const response = await fetch('http://localhost:5218/api/cinema/schedules', {
+        const response = await fetch('/api/cinema/schedules', {
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
@@ -66,7 +66,13 @@ const Schedule: React.FC = () => {
         });
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => null);
+          const errorText = await response.text().catch(() => '');
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { message: errorText };
+          }
           throw new Error(errorData?.message || `Ошибка загрузки расписания: ${response.status}`);
         }
 
@@ -163,7 +169,7 @@ const Schedule: React.FC = () => {
     setIsGenerating(true);
     try {
       console.log('Отправка запроса на генерацию расписания:', { startDate, endDate, token });
-      const response = await fetch('http://localhost:5218/api/cinema/schedules/generate', {
+      const response = await fetch('/api/cinema/schedules/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -178,7 +184,13 @@ const Schedule: React.FC = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorText = await response.text().catch(() => '');
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText };
+        }
         console.error('Ошибка сервера:', errorData);
         if (response.status === 401) {
           throw new Error('Необходима авторизация. Пожалуйста, войдите снова.');
@@ -189,7 +201,7 @@ const Schedule: React.FC = () => {
         }
       }
 
-      const scheduleResponse = await fetch('http://localhost:5218/api/cinema/schedules', {
+      const scheduleResponse = await fetch('/api/cinema/schedules', {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',

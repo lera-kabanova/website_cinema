@@ -187,7 +187,7 @@ const Booking: React.FC = () => {
   useEffect(() => {
     if (sessionData?.hallId) {
       axios
-        .get(`http://localhost:5218/api/cinema/halls/${sessionData.hallId}/rows`)
+        .get(`/api/cinema/halls/${sessionData.hallId}/rows`)
         .then(response => {
           const rows: Row[] = response.data;
           setHallConfig({ hallId: sessionData.hallId, rows, takenSeats: [] });
@@ -209,7 +209,7 @@ const Booking: React.FC = () => {
             throw new Error('Идентификатор сеанса отсутствует в данных');
           }
           const sessionResponse = await fetch(
-            `http://localhost:5218/api/cinema/schedules/${sessionData.id}`,
+            `/api/cinema/schedules/${sessionData.id}`,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -230,7 +230,7 @@ const Booking: React.FC = () => {
           setSelectedDate(new Date(session.date));
 
           const movieResponse = await fetch(
-            `http://localhost:5218/api/cinema/movies/${session.movieId}`,
+            `/api/cinema/movies/${session.movieId}`,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -292,7 +292,7 @@ const Booking: React.FC = () => {
       };
       if (session && session.hallId !== hallConfig.hallId) {
         axios
-          .get(`http://localhost:5218/api/cinema/halls/${session.hallId}/rows`)
+          .get(`/api/cinema/halls/${session.hallId}/rows`)
           .then(response => {
             const rows: Row[] = response.data;
             setHallConfig({ hallId: session.hallId, rows, takenSeats: [] });
@@ -308,7 +308,7 @@ const Booking: React.FC = () => {
         try {
           console.log('Fetching seats for session:', sessionData.id);
           const response = await fetch(
-            `http://localhost:5218/api/cinema/bookings/seats/${sessionData.id}`,
+            `/api/cinema/bookings/seats/${sessionData.id}`,
             {
               headers: { Authorization: `Bearer ${token}` },
               signal: controller.signal,
@@ -397,7 +397,7 @@ const Booking: React.FC = () => {
 
       const responses = await Promise.all(
         bookingRequests.map(request =>
-          fetch('http://localhost:5218/api/cinema/bookings', {
+          fetch('/api/cinema/bookings', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

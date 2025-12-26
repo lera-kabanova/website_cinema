@@ -35,57 +35,68 @@ const ContactsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-120px)] flex flex-col items-center justify-center text-center px-4 mt-32">
-      <Mail className="w-12 h-12 text-cinema-accent mb-4" />
-      <h1 className="text-3xl font-bold mb-6 text-cinema-accent">Контакты</h1>
-      <div className="text-gray-200 space-y-4 text-lg max-w-2xl mb-8">
-        <p>Если у вас есть вопросы или предложения, свяжитесь с нами:</p>
-        <ul className="list-disc pl-6 space-y-2 text-left mx-auto inline-block">
-          <li>Email: <a href="mailto:cinemawebwelcome@gmail.com" className="text-cinema-accent hover:underline">cinemawebwelcome@gmail.com</a></li>
-          <li>Телефон: <a href="tel:+79999999999" className="text-cinema-accent hover:underline">+375 (29) 234-34-89</a></li>
-        </ul>
-        <p>Или воспользуйтесь формой обратной связи ниже:</p>
-      </div>
-      <form onSubmit={handleSubmit} className="w-full max-w-md bg-white/10 rounded-lg p-6 flex flex-col gap-4 items-center">
-        <input
-          type="text"
-          name="name"
-          placeholder="Ваше имя"
-          className="w-full rounded px-3 py-2 bg-black/40 text-white border border-white/20 focus:border-cinema-accent outline-none"
-          value={form.name}
-          onChange={handleChange}
-          required
-        />
+    <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="text-center px-4 max-w-md w-full">
+        {/* Иконка */}
+        <div className="mb-8">
+          <Mail className="w-24 h-24 text-cinema-accent mx-auto" />
+        </div>
         
-        <input
-          type="text"
-          name="login"
-          placeholder="Ваш логин"
-          className="w-full rounded px-3 py-2 bg-black/40 text-white border border-white/20 focus:border-cinema-accent outline-none"
-          value={form.login}
-          onChange={handleChange}
-          required
-        />
-        <textarea
-          name="message"
-          placeholder="Ваше сообщение"
-          className="w-full rounded px-3 py-2 bg-black/40 text-white border border-white/20 focus:border-cinema-accent outline-none min-h-[100px] resize-y"
-          value={form.message}
-          onChange={handleChange}
-          required
-        />
-        <button
-          type="submit"
-          className="w-full py-2 rounded bg-cinema-accent hover:bg-cinema-accent/90 text-white font-bold transition"
-          disabled={loading}
-        >
-          {loading ? "Отправка..." : "Отправить"}
-        </button>
-        {success && <div className="text-green-400 text-sm mt-2">{success}</div>}
-        {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
-      </form>
+        {/* Заголовок */}
+        <h1 className="text-3xl font-bold mb-8">
+          Контакты
+        </h1>
+        
+        {/* Сообщение */}
+        <p className="text-gray-300 mb-10">
+          Если у вас есть вопросы или предложения, свяжитесь с нами:
+        </p>
+
+        {/* Форма обратной связи */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <input
+            type="text"
+            name="name"
+            placeholder="Ваше имя"
+            className="w-full rounded px-4 py-3 bg-gray-900/50 text-white border border-gray-700 focus:border-cinema-accent outline-none"
+            value={form.name}
+            onChange={handleChange}
+            required
+          />
+          
+          <input
+            type="text"
+            name="login"
+            placeholder="Ваш логин"
+            className="w-full rounded px-4 py-3 bg-gray-900/50 text-white border border-gray-700 focus:border-cinema-accent outline-none"
+            value={form.login}
+            onChange={handleChange}
+            required
+          />
+          
+          <textarea
+            name="message"
+            placeholder="Ваше сообщение"
+            className="w-full rounded px-4 py-3 bg-gray-900/50 text-white border border-gray-700 focus:border-cinema-accent outline-none min-h-[120px] resize-none"
+            value={form.message}
+            onChange={handleChange}
+            required
+          />
+          
+          <button
+            type="submit"
+            className="w-full py-3 rounded bg-cinema-accent text-black font-bold hover:bg-cinema-accent/90 transition"
+            disabled={loading}
+          >
+            {loading ? "Отправка..." : "Отправить сообщение"}
+          </button>
+          
+          {success && <div className="text-green-400">{success}</div>}
+          {error && <div className="text-red-400">{error}</div>}
+        </form>
+      </div>
     </div>
   );
 };
 
-export default ContactsPage; 
+export default ContactsPage;

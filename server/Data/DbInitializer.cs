@@ -1,4 +1,5 @@
 using CinemaProject.Models;
+using System.Linq;
 
 namespace CinemaProject.Data
 {
@@ -8,37 +9,76 @@ namespace CinemaProject.Data
         {
             try
             {
-                context.Database.EnsureCreated();
+                // База уже должна быть создана через миграции, просто проверяем подключение
+                if (!context.Database.CanConnect())
+                {
+                    throw new Exception("Не удается подключиться к базе данных");
+                }
                 
+                // Получаем маппинг жанров по именам
+                var genres = context.Genres.ToList();
+                var genreMap = genres.ToDictionary(g => g.Name, g => g.Id);
+                
+                // Проверяем, есть ли уже данные в базе
                 var existingMovies = context.Movies.ToList();
-                var preconfiguredMovies = GetPreconfiguredMovies();
+                var preconfiguredMoviesData = GetPreconfiguredMovies(genreMap);
                 
-                var newMovies = preconfiguredMovies
-                    .Where(pm => !existingMovies.Any(em => em.Title == pm.Title))
+                var newMoviesData = preconfiguredMoviesData
+                    .Where(pm => !existingMovies.Any(em => em.Title == pm.Movie.Title))
                     .ToList();
                 
-                if (newMovies.Any())
+                if (newMoviesData.Any())
                 {
+                    var newMovies = newMoviesData.Select(pm => pm.Movie).ToList();
                     context.Movies.AddRange(newMovies);
+                    context.SaveChanges(); // Сохраняем, чтобы получить Id для новых фильмов
                     Console.WriteLine($"Добавлено {newMovies.Count} новых фильмов");
+                    
+                    // Создаем связи MovieGenre для новых фильмов
+                    foreach (var movieData in newMoviesData)
+                    {
+                        var movie = context.Movies.First(m => m.Title == movieData.Movie.Title);
+                        if (!context.MovieGenres.Any(mg => mg.MovieId == movie.Id && mg.GenreId == movieData.GenreId))
+                        {
+                            context.MovieGenres.Add(new MovieGenre
+                            {
+                                MovieId = movie.Id,
+                                GenreId = movieData.GenreId
+                            });
+                        }
+                    }
                 }
                 
                 foreach (var existingMovie in existingMovies)
                 {
-                    var updatedMovie = preconfiguredMovies
-                        .FirstOrDefault(pm => pm.Title == existingMovie.Title);
+                    var updatedMovieData = preconfiguredMoviesData
+                        .FirstOrDefault(pm => pm.Movie.Title == existingMovie.Title);
                     
-                    if (updatedMovie != null)
+                    if (updatedMovieData.Movie != null)
                     {
-                        existingMovie.Duration = updatedMovie.Duration;
-                        existingMovie.Genre = updatedMovie.Genre;
-                        existingMovie.ImageUrl = updatedMovie.ImageUrl;
-                        existingMovie.AgeRating = updatedMovie.AgeRating;
-                        existingMovie.Year = updatedMovie.Year;
-                        existingMovie.Description = updatedMovie.Description;
-                        existingMovie.TrailerUrl = updatedMovie.TrailerUrl;
-                        existingMovie.BackgroundImageUrl = updatedMovie.BackgroundImageUrl;
-                        existingMovie.PopularityScore = updatedMovie.PopularityScore;
+                        existingMovie.Duration = updatedMovieData.Movie.Duration;
+                        existingMovie.ImageUrl = updatedMovieData.Movie.ImageUrl;
+                        existingMovie.AgeRating = updatedMovieData.Movie.AgeRating;
+                        existingMovie.Year = updatedMovieData.Movie.Year;
+                        existingMovie.Description = updatedMovieData.Movie.Description;
+                        existingMovie.TrailerUrl = updatedMovieData.Movie.TrailerUrl;
+                        existingMovie.BackgroundImageUrl = updatedMovieData.Movie.BackgroundImageUrl;
+                        existingMovie.PopularityScore = updatedMovieData.Movie.PopularityScore;
+                        
+                        // Обновляем связь с жанром
+                        if (!context.MovieGenres.Any(mg => mg.MovieId == existingMovie.Id && mg.GenreId == updatedMovieData.GenreId))
+                        {
+                            // Удаляем старые связи для этого фильма
+                            var oldMovieGenres = context.MovieGenres.Where(mg => mg.MovieId == existingMovie.Id).ToList();
+                            context.MovieGenres.RemoveRange(oldMovieGenres);
+                            
+                            // Добавляем новую связь
+                            context.MovieGenres.Add(new MovieGenre
+                            {
+                                MovieId = existingMovie.Id,
+                                GenreId = updatedMovieData.GenreId
+                            });
+                        }
                     }
                 }
                 
@@ -52,15 +92,14 @@ namespace CinemaProject.Data
             }
         }
 
-        private static Movie[] GetPreconfiguredMovies()
+        private static (Movie Movie, int GenreId)[] GetPreconfiguredMovies(Dictionary<string, int> genreMap)
         {
-            return new Movie[]
+            return new (Movie Movie, int GenreId)[]
             {
-                new Movie
+                (new Movie
                 {
                     Title = "65",
-                    Duration = 93, 
-                    Genre = "Триллер",
+                    Duration = 93,
                     ImageUrl = "/assets/images/65.jpg",
                     AgeRating = "13+",
                     Year = 2023,
@@ -68,12 +107,11 @@ namespace CinemaProject.Data
                     TrailerUrl = "https://www.youtube.com/embed/e4-KEuXoddY?si=SdZCNR9ptBMGSGq6",
                     BackgroundImageUrl = "/assets/images/bg-65.jpeg",
                     PopularityScore = 0.7f
-                },
-                new Movie
+                }, genreMap.GetValueOrDefault("Триллер", 1)),
+                (new Movie
                 {
                     Title = "Обезьяна против Мехаобезьяны",
-                    Duration = 61, 
-                    Genre = "Боевик",
+                    Duration = 61,
                     ImageUrl = "/assets/images/ape.jpg",
                     AgeRating = "13+",
                     Year = 2023,
@@ -81,12 +119,11 @@ namespace CinemaProject.Data
                     TrailerUrl = "https://www.youtube.com/embed/iiHf56xXYq4?si=BXgEuN1OdzLQB1SD",
                     BackgroundImageUrl = "/assets/images/bg-ape.jpeg",
                     PopularityScore = 0.6f
-                },
-                new Movie
+                }, genreMap.GetValueOrDefault("Боевик", 2)),
+                (new Movie
                 {
                     Title = "Ассасин: Битва миров",
                     Duration = 130, // 2ч 10мин
-                    Genre = "Фэнтези",
                     ImageUrl = "/assets/images/assassin.jpg",
                     AgeRating = "18+",
                     Year = 2021,
@@ -94,12 +131,11 @@ namespace CinemaProject.Data
                     TrailerUrl = "https://www.youtube.com/embed/4fzIm7y27wY?si=tz7hvYhraCxhdfYa",
                     BackgroundImageUrl = "/assets/images/bg-assassin.jpg",
                     PopularityScore = 0.8f
-                },
-                new Movie
+                }, genreMap.GetValueOrDefault("Фэнтези", 3)),
+                (new Movie
                 {
                     Title = "Мег 2: Бездна",
-                    Duration = 116, 
-                    Genre = "Боевик",
+                    Duration = 116,
                     ImageUrl = "/assets/images/meg-2.jpg",
                     AgeRating = "12+",
                     Year = 2023,
@@ -107,12 +143,11 @@ namespace CinemaProject.Data
                     TrailerUrl = "https://www.youtube.com/embed/h0jB3_u6Z5A?si=Fkg96ag0xmHAAqdC",
                     BackgroundImageUrl = "/assets/images/bg-meg-2.jpeg",
                     PopularityScore = 0.9f
-                },
-                new Movie
+                }, genreMap.GetValueOrDefault("Боевик", 2)),
+                (new Movie
                 {
                     Title = "Без обид",
                     Duration = 103, // 1ч 43мин
-                    Genre = "Романтика",
                     ImageUrl = "/assets/images/no-hard-feelings.jpeg",
                     AgeRating = "18+",
                     Year = 2023,
@@ -120,12 +155,11 @@ namespace CinemaProject.Data
                     TrailerUrl = "https://www.youtube.com/embed/p4gTCGrrHpw?si=Et4s8Yf5fVv5SjfC",
                     BackgroundImageUrl = "/assets/images/bg-no-hard-feelings.jpeg",
                     PopularityScore = 0.7f
-                },
-                new Movie
+                }, genreMap.GetValueOrDefault("Романтика", 4)),
+                (new Movie
                 {
                     Title = "Моё прекрасное несчастье",
                     Duration = 105, // 1ч 45мин
-                    Genre = "Романтика",
                     ImageUrl = "/assets/images/beautiful-disaster.jpeg",
                     AgeRating = "18+",
                     Year = 2023,
@@ -133,12 +167,11 @@ namespace CinemaProject.Data
                     TrailerUrl = "https://www.youtube.com/embed/FLCOztw19OY?si=CyZ2LX9KyUkPPtTQ",
                     BackgroundImageUrl = "/assets/images/bg-beautiful-disaster.jpeg",
                     PopularityScore = 0.6f
-                },
-                new Movie
+                }, genreMap.GetValueOrDefault("Романтика", 4)),
+                (new Movie
                 {
                     Title = "Форсаж 10",
                     Duration = 141, // 2ч 21мин
-                    Genre = "Боевик",
                     ImageUrl = "/assets/images/fast-x.jpeg",
                     AgeRating = "13+",
                     Year = 2023,
@@ -146,12 +179,11 @@ namespace CinemaProject.Data
                     TrailerUrl = "https://www.youtube.com/embed/SBZGp9edOVk?si=94AtB_VKl96W-KeC",
                     BackgroundImageUrl = "/assets/images/bg-fast-x.jpeg",
                     PopularityScore = 0.9f
-                },
-                new Movie
+                }, genreMap.GetValueOrDefault("Боевик", 2)),
+                (new Movie
                 {
                     Title = "Сердце Стоун",
                     Duration = 122, // 2ч 2мин
-                    Genre = "Боевик",
                     ImageUrl = "/assets/images/heart-of-stone.jpg",
                     AgeRating = "13+",
                     Year = 2023,
@@ -159,12 +191,11 @@ namespace CinemaProject.Data
                     TrailerUrl = "https://www.youtube.com/embed/FZe1hw99bic?si=wN2oZ1AdvNT1LbMq",
                     BackgroundImageUrl = "/assets/images/bg-heart-of-stone.jpeg",
                     PopularityScore = 0.8f
-                },
-                new Movie
+                }, genreMap.GetValueOrDefault("Боевик", 2)),
+                (new Movie
                 {
                     Title = "1+1",
                     Duration = 112, // 1ч 52мин
-                    Genre = "Драма",
                     ImageUrl = "/assets/images/Intouchables.jpg",
                     AgeRating = "16+",
                     Year = 2011,
@@ -172,12 +203,11 @@ namespace CinemaProject.Data
                     TrailerUrl = "https://www.youtube.com/embed/tTwFeGArcrs?si=BDLQcMBuM-IZCuq6",
                     BackgroundImageUrl = "/assets/images/bg-1+1.jpg",
                     PopularityScore = 0.9f
-                },
-                new Movie
+                }, genreMap.GetValueOrDefault("Драма", 5)),
+                (new Movie
                 {
                     Title = "Тюрьма 77",
                     Duration = 168, // 2ч 48мин
-                    Genre = "Триллер",
                     ImageUrl = "/assets/images/jailer.jpg",
                     AgeRating = "16+",
                     Year = 2023,
@@ -185,12 +215,11 @@ namespace CinemaProject.Data
                     TrailerUrl = "https://www.youtube.com/embed/6jf4Hp1Dkeg?si=jkZN-PmcIAmT2ft_",
                     BackgroundImageUrl = "/assets/images/bg-jailer.jpeg",
                     PopularityScore = 0.7f
-                },
-                new Movie
+                }, genreMap.GetValueOrDefault("Триллер", 1)),
+                (new Movie
                 {
                     Title = "Питер Пэн и Венди",
                     Duration = 109, // 1ч 49мин
-                    Genre = "Фэнтези",
                     ImageUrl = "/assets/images/peter-pan-and-wendy.jpg",
                     AgeRating = "6+",
                     Year = 2023,
@@ -198,12 +227,11 @@ namespace CinemaProject.Data
                     TrailerUrl = "https://www.youtube.com/embed/IvzEiXTfNLs?si=vlQw2Lml9-WQDkEn",
                     BackgroundImageUrl = "/assets/images/bg-peter-pan-and-wendy.jpeg",
                     PopularityScore = 0.6f
-                },
-                new Movie
+                }, genreMap.GetValueOrDefault("Фэнтези", 3)),
+                (new Movie
                 {
                     Title = "Мегалодон",
                     Duration = 100, // 1ч 40мин
-                    Genre = "Ужасы",
                     ImageUrl = "/assets/images/the-black-demon.jpg",
                     AgeRating = "18+",
                     Year = 2023,
@@ -211,12 +239,11 @@ namespace CinemaProject.Data
                     TrailerUrl = "https://www.youtube.com/embed/smdoOSt9Crk?si=mcZHRytJiv9bRfqA",
                     BackgroundImageUrl = "/assets/images/bg-the-black-demon.jpeg",
                     PopularityScore = 0.7f
-                },
-                new Movie
+                }, genreMap.GetValueOrDefault("Ужасы", 6)),
+                (new Movie
                 {
                     Title = "Переводчик",
                     Duration = 123, // 2ч 3мин
-                    Genre = "Боевик",
                     ImageUrl = "/assets/images/the-covenant.jpg",
                     AgeRating = "18+",
                     Year = 2023,
@@ -224,12 +251,11 @@ namespace CinemaProject.Data
                     TrailerUrl = "https://www.youtube.com/embed/GXEshCygW3U?si=8uEOJjRvORQhTpce",
                     BackgroundImageUrl = "/assets/images/bg-the-covenant.jpeg",
                     PopularityScore = 0.8f
-                },
-                new Movie
+                }, genreMap.GetValueOrDefault("Боевик", 2)),
+                (new Movie
                 {
                     Title = "Русалочка",
                     Duration = 135, // 2ч 15мин
-                    Genre = "Фэнтези",
                     ImageUrl = "/assets/images/the-little-mermaid.jpeg",
                     AgeRating = "6+",
                     Year = 2023,
@@ -237,12 +263,11 @@ namespace CinemaProject.Data
                     TrailerUrl = "https://www.youtube.com/embed/AkXCEb0STLM?si=EpOijPvYhdusU_NL",
                     BackgroundImageUrl = "/assets/images/bg-little-mermaid.jpg",
                     PopularityScore = 0.8f
-                },
-                new Movie
+                }, genreMap.GetValueOrDefault("Фэнтези", 3)),
+                (new Movie
                 {
                     Title = "Нечто. Монстр из глубин",
                     Duration = 99, // 1ч 39мин
-                    Genre = "Ужасы",
                     ImageUrl = "/assets/images/the-tank.jpeg",
                     AgeRating = "18+",
                     Year = 2023,
@@ -250,12 +275,11 @@ namespace CinemaProject.Data
                     TrailerUrl = "https://www.youtube.com/embed/Qbsgw7Jq0p8?si=dMyMr8SGKMw-SaHX",
                     BackgroundImageUrl = "/assets/images/bg-the-tank.jpeg",
                     PopularityScore = 0.6f
-                },
-                new Movie
+                }, genreMap.GetValueOrDefault("Ужасы", 6)),
+                (new Movie
                 {
                     Title = "Трансформеры: Восхождение Звероботов",
                     Duration = 127, // 2ч 7мин
-                    Genre = "Боевик",
                     ImageUrl = "/assets/images/transformer.jpg",
                     AgeRating = "15+",
                     Year = 2023,
@@ -263,12 +287,11 @@ namespace CinemaProject.Data
                     TrailerUrl = "https://www.youtube.com/embed/eQDfGzlhHoY?si=wuTZs-lwBBA6McwO",
                     BackgroundImageUrl = "/assets/images/bg-transformer.jpg",
                     PopularityScore = 0.9f
-                },
-                new Movie
+                }, genreMap.GetValueOrDefault("Боевик", 2)),
+                (new Movie
                 {
                     Title = "Интерстеллар",
                     Duration = 93, // 1ч 33мин
-                    Genre = "Фэнтези",
                     ImageUrl = "/assets/images/Интерстеллар.jpg",
                     AgeRating = "16+",
                     Year = 2014,
@@ -276,12 +299,11 @@ namespace CinemaProject.Data
                     TrailerUrl = "https://www.youtube.com/embed/m2vijtILDuk?si=CCB3QOFmf-GJQJLS",
                     BackgroundImageUrl = "/assets/images/bg-interstellar.jpg",
                     PopularityScore = 0.95f
-                },
-                new Movie
+                }, genreMap.GetValueOrDefault("Фэнтези", 3)),
+                (new Movie
                 {
                     Title = "Побег из Шоушенка",
                     Duration = 142, // 2ч 22мин
-                    Genre = "Триллер",
                     ImageUrl = "/assets/images/Побег-из-Шоушенка.jpg",
                     AgeRating = "16+",
                     Year = 1994,
@@ -289,12 +311,11 @@ namespace CinemaProject.Data
                     TrailerUrl = "https://www.youtube.com/embed/kgAeKpAPOYk?si=aXaZHUxKNqgO3ES2",
                     BackgroundImageUrl = "/assets/images/bg-Побег-из-Шоушенка.jpg",
                     PopularityScore = 0.95f
-                },
-                new Movie
+                }, genreMap.GetValueOrDefault("Триллер", 1)),
+                (new Movie
                 {
                     Title = "Форрест Гамп",
                     Duration = 142, // 2ч 22мин
-                    Genre = "Романтика",
                     ImageUrl = "/assets/images/Форрест-Гамп.jpg",
                     AgeRating = "12+",
                     Year = 1994,
@@ -302,12 +323,11 @@ namespace CinemaProject.Data
                     TrailerUrl = "https://www.youtube.com/embed/otmeAaifX04?si=_kU-YyotzJc8s4qG",
                     BackgroundImageUrl = "/assets/images/bg-Форрест-Гамп.jpg",
                     PopularityScore = 0.9f
-                },
-                new Movie
+                }, genreMap.GetValueOrDefault("Романтика", 4)),
+                (new Movie
                 {
                     Title = "Хатико: Самый верный друг",
                     Duration = 93, // 1ч 33мин
-                    Genre = "Драма",
                     ImageUrl = "/assets/images/Хатико.jpg",
                     AgeRating = "0+",
                     Year = 2009,
@@ -315,7 +335,7 @@ namespace CinemaProject.Data
                     TrailerUrl = "https://www.youtube.com/embed/uSBUbKaffzU?si=gKMTUWaJ42zqY3Fr",
                     BackgroundImageUrl = "/assets/images/bg-Хатико.jpg",
                     PopularityScore = 0.85f
-                }
+                }, genreMap.GetValueOrDefault("Драма", 5))
             };
         }
     }

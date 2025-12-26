@@ -50,7 +50,7 @@ export default function NowShowingHero() {
 useEffect(() => {
     const fetchMovies = async () => {
       try {
-        const response = await fetch('http://localhost:5218/api/Movies/featured');
+        const response = await fetch('/api/Movies/now-playing?take=6');
         if (!response.ok) {
           throw new Error('Ошибка загрузки данных');
         }

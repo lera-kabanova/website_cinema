@@ -88,7 +88,7 @@ export function AuthForm({ onSuccess, onClose }: AuthFormProps) {
     if (!validateForm()) return;
 
     const endpoint = isLogin ? "login" : "register";
-    const url = `http://localhost:5218/api/auth/${endpoint}`;
+    const url = `/api/auth/${endpoint}`;
 
     try {
       const response = await fetch(url, {

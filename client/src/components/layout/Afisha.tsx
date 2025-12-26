@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 interface Movie {
   id: number;
   title: string;
-  duration: string;
+  duration: number;
   genre: string;
   imageUrl: string;
   ageRating?: string;
@@ -29,7 +29,7 @@ const Afisha: React.FC = () => {
         setLoading(true);
         setError(null);
         
-        const response = await fetch("http://localhost:5218/api/Movies");
+        const response = await fetch("/api/Movies/now-playing?take=40");
         
         if (!response.ok) {
           throw new Error(`Ошибка HTTP: ${response.status}`);
@@ -167,6 +167,7 @@ const Afisha: React.FC = () => {
             >
               <Link
                 to={`/movie/${movie.id}`}
+                state={{ movie, source: "tmdb" }}
                 className="group rounded-lg block transform transition-transform duration-300 hover:-translate-y-1"
               >
                 <div className="relative aspect-[2/3] rounded-lg overflow-hidden shadow-lg">
