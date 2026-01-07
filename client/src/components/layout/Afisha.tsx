@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Search } from "lucide-react";
 
 interface Movie {
   id: number;
@@ -19,6 +20,7 @@ const Afisha: React.FC = () => {
   const [selectedGenre, setSelectedGenre] = useState<string>("ВСЕ");
   const [genres, setGenres] = useState<string[]>(["ВСЕ"]);
   const [imageLoadingStates, setImageLoadingStates] = useState<Record<number, boolean>>({});
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   // Загрузка всех фильмов при монтировании
   useEffect(() => {
@@ -72,13 +74,28 @@ const Afisha: React.FC = () => {
     };
   }, []);
 
-  // Фильтрация фильмов по выбранному жанру
+  // Фильтрация фильмов по выбранному жанру и поисковому запросу
   const filteredMovies = useMemo(() => {
-    if (selectedGenre === "ВСЕ") return movies;
-    return movies.filter(movie => 
-      movie.genre.split(',').map(g => g.trim()).includes(selectedGenre)
-    );
-  }, [movies, selectedGenre]);
+    let filtered = movies;
+
+    // Фильтрация по жанру
+    if (selectedGenre !== "ВСЕ") {
+      filtered = filtered.filter(movie => 
+        movie.genre.split(',').map(g => g.trim()).includes(selectedGenre)
+      );
+    }
+
+    // Фильтрация по поисковому запросу
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(movie =>
+        movie.title.toLowerCase().includes(query) ||
+        movie.genre.toLowerCase().includes(query)
+      );
+    }
+
+    return filtered;
+  }, [movies, selectedGenre, searchQuery]);
 
   const handleImageLoad = (movieId: number) => {
     setImageLoadingStates(prev => ({
@@ -127,6 +144,25 @@ const Afisha: React.FC = () => {
 
   return (
     <section className="px-8 py-6 bg-cinema-primary text-cinema-text min-h-screen pt-20">
+      {/* Поиск по фильмам */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="mb-6"
+      >
+        <div className="relative max-w-md mx-auto">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Поиск фильмов..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 bg-white/10 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cinema-accent focus:border-transparent transition-all"
+          />
+        </div>
+      </motion.div>
+
       {/* Панель фильтрации жанров */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -214,7 +250,10 @@ const Afisha: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            Нет фильмов в выбранном жанре
+            {searchQuery.trim() 
+              ? `Не найдено фильмов по запросу "${searchQuery}"`
+              : "Нет фильмов в выбранном жанре"
+            }
           </motion.div>
         )}
       </motion.div>

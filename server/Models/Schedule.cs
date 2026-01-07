@@ -21,6 +21,8 @@ namespace CinemaProject.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
+        public bool IsActive { get; set; } = true; // Если false, сеанс скрыт и недоступен для бронирования
+
         public Movie? Movie { get; set; }
         public Hall? Hall { get; set; }
     }

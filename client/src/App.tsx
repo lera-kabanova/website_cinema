@@ -1,5 +1,5 @@
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom"
-import { AuthProvider } from "./context/AuthContext"
+import { BrowserRouter, Routes, Route, Link, Navigate } from "react-router-dom"
+import { AuthProvider, useAuth } from "./context/AuthContext"
 import { Toaster } from '@/components/ui/sonner'
 import Header from "./components/layout/Header"
 import ShowingMovies from "./components/layout/ShowingMovies"
@@ -11,60 +11,89 @@ import Booking from "./components/layout/Booking"
 import Halls from "./components/layout/Halls"
 import Profile from "./components/layout/Profile"
 import { ProtectedRoute } from "./ProtectedRoute"
+import { AdminRoute } from "./AdminRoute"
 import Footer from "./components/layout/Footer"
 import PrivacyPage from "./components/pages/PrivacyPage"
 import TermsPage from "@/components/pages/TermsPage"
 import ContactsPage from "@/components/pages/ContactsPage"
 import AboutPage from "@/components/pages/AboutPage"
+import AdminPanel from "@/components/admin/AdminPanel"
+
+// Компонент для проверки, является ли пользователь админом
+const AdminOnlyWrapper = ({ children }: { children: React.ReactNode }) => {
+  const { role } = useAuth();
+  if (role === "Admin") {
+    return <Navigate to="/admin" replace />;
+  }
+  return <>{children}</>;
+};
+
+const AppContent = () => {
+  const { role } = useAuth();
+  const isAdmin = role === "Admin";
+
+  if (isAdmin) {
+    return (
+      <Routes>
+        <Route path="/admin" element={<AdminRoute><AdminPanel /></AdminRoute>} />
+        <Route path="*" element={<Navigate to="/admin" replace />} />
+      </Routes>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col bg-cinema-primary text-cinema-text">
+      <Header />
+      <div className="flex flex-1">
+        <main className="flex-1 overflow-y-auto">
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <>
+                  <ShowingMovies />
+                  <MoviePoster />
+                </>
+              }
+            />
+            <Route path="/afisha" element={<Afisha />} />
+            <Route path="/schedule" element={<Schedule />} />
+            <Route path="/halls" element={<Halls />} />
+            <Route path="/movie/:id" element={<MovieDetails />} />
+            <Route path="/booking/:scheduleId" element={<Booking />} />
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } 
+            />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/contacts" element={<ContactsPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route
+              path="*"
+              element={
+                <div className="p-8 text-center text-2xl">
+                  Страница не найдена. <Link to="/" className="text-cinema-accent">На главную</Link>
+                </div>
+              }
+            />
+          </Routes>
+        </main>
+      </div>
+      <Footer />
+    </div>
+  );
+};
 
 const App = () => {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <div className="min-h-screen flex flex-col bg-cinema-primary text-cinema-text">
-          <Header />
-          <div className="flex flex-1">
-            <main className="flex-1 overflow-y-auto">
-              <Routes>
-                <Route
-                  path="/"
-                  element={
-                    <>
-                      <ShowingMovies />
-                      <MoviePoster />
-                    </>
-                  }
-                />
-                <Route path="/afisha" element={<Afisha />} />
-                <Route path="/schedule" element={<Schedule />} />
-                <Route path="/halls" element={<Halls />} />
-                <Route path="/movie/:id" element={<MovieDetails />} />
-                <Route path="/booking/:scheduleId" element={<Booking />} />
-                <Route 
-                  path="/profile" 
-                  element={
-                    <ProtectedRoute>
-                      <Profile />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route path="/privacy" element={<PrivacyPage />} />
-                <Route path="/terms" element={<TermsPage />} />
-                <Route path="/contacts" element={<ContactsPage />} />
-                <Route path="/about" element={<AboutPage />} />
-                <Route
-                  path="*"
-                  element={
-                    <div className="p-8 text-center text-2xl">
-                      Страница не найдена. <Link to="/" className="text-cinema-accent">На главную</Link>
-                    </div>
-                  }
-                />
-              </Routes>
-            </main>
-          </div>
-          <Footer />
-        </div>
+        <AppContent />
         <Toaster 
           position="top-center"
           toastOptions={{

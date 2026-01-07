@@ -23,7 +23,7 @@ const userMenuItems = [
 const Header: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
-  const { email, logout } = useAuth(); 
+  const { email, logout, role } = useAuth(); 
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -73,6 +73,14 @@ const Header: React.FC = () => {
           <div className="hidden md:flex items-center space-x-2">
             {email ? (
               <div className="flex items-center space-x-4">
+                {role === 'Admin' && (
+                  <Link 
+                    to="/admin" 
+                    className="text-sm text-white hover:text-cinema-accent transition-colors"
+                  >
+                    Админ-панель
+                  </Link>
+                )}
                 <Link 
                   to="/profile" 
                   className="text-sm text-white hover:text-cinema-accent transition-colors"
@@ -141,6 +149,15 @@ const Header: React.FC = () => {
               <div className="pt-2 mt-2 border-t border-white/20">
                 {email ? (
                   <div className="px-3 py-2 text-white/90 flex flex-col gap-2">
+                    {role === 'Admin' && (
+                      <Link 
+                        to="/admin" 
+                        className="text-white/80 hover:text-white transition-colors"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Админ-панель
+                      </Link>
+                    )}
                     <Link 
                       to="/profile" 
                       className="text-white/80 hover:text-white transition-colors"

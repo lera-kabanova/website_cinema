@@ -88,6 +88,13 @@ namespace CinemaProject.Controllers
                     .ThenInclude(mg => mg.Genre)
             .FirstOrDefaultAsync(s => s.Id == request.ScheduleId);
         
+        // Проверяем активность сеанса и зала после загрузки
+        if (schedule == null || !schedule.IsActive)
+            return NotFound("Сеанс не найден или неактивен");
+        
+        if (schedule.Hall == null || schedule.Hall.IsClosed)
+            return BadRequest("Зал не найден или закрыт");
+        
         if (schedule == null) 
             return NotFound("Сеанс не найден");
 
@@ -221,6 +228,11 @@ namespace CinemaProject.Controllers
                     .OrderByDescending(b => b.BookingTime)
                     .ToListAsync();
 
+                // Фильтруем только активные сеансы и не закрытые залы
+                bookings = bookings
+                    .Where(b => b.Schedule != null && b.Schedule.IsActive && b.Schedule.Hall != null && !b.Schedule.Hall.IsClosed)
+                    .ToList();
+
                 var result = bookings.Select(b =>
                 {
                     object? movie = null;
@@ -313,6 +325,13 @@ public async Task<ActionResult<IEnumerable<SeatInfoApi>>> GetSeatsForSession(int
                 .ThenInclude(h => h.Zones)
             .AsNoTracking() // Не отслеживаем изменения для избежания проблем с сериализацией
             .FirstOrDefaultAsync(s => s.Id == sessionId);
+        
+        // Проверяем активность сеанса и зала после загрузки
+        if (schedule == null || !schedule.IsActive)
+            return NotFound("Сеанс не найден или неактивен");
+        
+        if (schedule.Hall == null || schedule.Hall.IsClosed)
+            return BadRequest("Зал не найден или закрыт");
         
         if (schedule == null)
         {

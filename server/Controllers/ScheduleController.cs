@@ -98,7 +98,10 @@ namespace CinemaProject.Controllers
                         .Include(m => m.MovieGenres)
                             .ThenInclude(mg => mg.Genre)
                         .ToListAsync();
-                    var halls = await _context.Halls.Include(h => h.Zones).ToListAsync();
+                    var halls = await _context.Halls
+                        .Where(h => !h.IsClosed) // Исключаем закрытые залы
+                        .Include(h => h.Zones)
+                        .ToListAsync();
                     var random = new Random();
 
                     _logger.LogInformation("Доступно фильмов: {MovieCount}, залов: {HallCount}", movies.Count, halls.Count);
@@ -198,6 +201,7 @@ namespace CinemaProject.Controllers
                                     Date = date.Date,
                                     Time = currentTime,
                                     CreatedAt = DateTime.UtcNow,
+                                    IsActive = true, // По умолчанию сеанс активен
                                     Movie = movie,
                                     Hall = hall
                                 };
@@ -274,6 +278,11 @@ namespace CinemaProject.Controllers
                     .Include(s => s.Hall)
                     .ThenInclude(h => h.Zones)
                     .ToListAsync();
+
+                // Фильтруем активные сеансы и не закрытые залы после загрузки
+                schedules = schedules
+                    .Where(s => s.IsActive && s.Hall != null && !s.Hall.IsClosed)
+                    .ToList();
 
                 var formattedSchedules = schedules
                     .Where(s => s.Movie != null && s.Hall != null)

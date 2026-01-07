@@ -32,6 +32,10 @@ namespace CinemaProject.Models
 
         public decimal FinalPrice { get; set; }
 
+        public DateTime? CancelledAt { get; set; }
+
+        public int? CancelledBy { get; set; } // ID администратора, который отменил билет
+
         public Schedule Schedule { get; set; } // Навигационное свойство
         public Zone Zone { get; set; } // Навигационное свойство
         public TicketType TicketType { get; set; } // Навигационное свойство
